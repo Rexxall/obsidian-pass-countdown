@@ -1,0 +1,86 @@
+/* ==========================================================================
+   Pass Countdown
+   ========================================================================== */
+
+.pass-countdown {
+	padding: 16px 16px 20px;
+}
+
+.pass-countdown .pc-big {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+}
+
+.pass-countdown .pc-big-value {
+	font-family: var(--rk-font-num);
+	font-size: 3.2em;
+	font-weight: 600;
+	line-height: 1;
+	letter-spacing: -0.02em;
+	font-variant-numeric: tabular-nums lining-nums;
+}
+
+.pass-countdown.rk-paper .pc-big-value { font-size: 3.6em; }
+
+.pass-countdown .pc-dots {
+	display: grid;
+	grid-template-columns: repeat(13, 1fr);
+	gap: 4px;
+	margin-top: 12px;
+}
+
+.pass-countdown .pc-dot {
+	aspect-ratio: 1;
+	border-radius: 50%;
+	background: var(--rk-muted);
+}
+
+.pass-countdown .pc-dot.is-left {
+	background: transparent;
+	box-shadow: inset 0 0 0 1.2px var(--rk-faint);
+}
+
+.pass-countdown .pc-dot.is-current {
+	background: var(--rk-good);
+	box-shadow: 0 0 0 2px var(--rk-good-soft);
+}
+
+.pass-countdown.rk-paper .pc-dot.is-used { background: var(--rk-ink); border-radius: 45% 55% 50% 50%; }
+.pass-countdown.rk-paper .pc-dot.is-left { box-shadow: inset 0 0 0 1px var(--rk-border); }
+
+.pass-countdown .pc-split { margin-top: 8px; }
+
+.pass-countdown .pc-duration { font-size: 1.5em; }
+
+.pass-countdown .pc-row-index {
+	min-width: 30px;
+	color: var(--rk-faint);
+}
+
+.pass-countdown .pc-row.is-active .pc-row-index { color: var(--rk-good); }
+
+.pass-countdown .pc-row-note { margin-top: 0; overflow-wrap: anywhere; }
+
+.pass-countdown .pc-row-delete.is-armed { color: var(--rk-danger); }
+
+.pass-countdown-modal .pc-preview {
+	display: flex;
+	justify-content: space-between;
+	align-items: flex-end;
+	margin: 6px 0 12px;
+}
+
+.pass-countdown-modal .pc-preview-right { text-align: right; }
+
+.pass-countdown-modal .pc-preview-value {
+	font-family: var(--rk-font-num);
+	font-size: 1.2em;
+	font-weight: 600;
+}
+
+.pass-countdown-modal .pc-overlap { margin-bottom: 8px; }
+
+.pass-countdown-status {
+	font-variant-numeric: tabular-nums;
+}

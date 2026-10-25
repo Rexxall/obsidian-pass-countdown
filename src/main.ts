@@ -5,7 +5,6 @@ import {
 	PassData,
 	PassRecord,
 	PassStats,
-	Tone,
 	buildIcs,
 	buildMarkdownReport,
 	computeStats,
@@ -18,10 +17,22 @@ import {
 } from './core';
 
 const VIEW_TYPE = 'pass-countdown-view';
+/** Above this many uses the dot grid gets too dense; a meter is used instead. */
+const MAX_DOTS = 120;
 
 /** Follows the Obsidian interface language rather than the system locale. */
 function formatDateTime(date: Date): string {
 	return date.toLocaleString(moment.locale(), { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+/** Month, day and time only; the year is shown when it is not this year. */
+function formatShort(date: Date): string {
+	const sameYear = date.getFullYear() === new Date().getFullYear();
+	return date.toLocaleString(moment.locale(), { year: sameYear ? undefined : 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+}
+
+function formatDate(date: Date): string {
+	return date.toLocaleDateString(moment.locale(), { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function formatDuration(ms: number): string {
@@ -167,59 +178,86 @@ class PassCountdownView extends ItemView {
 		root.empty();
 		root.addClass('pass-countdown');
 		const { settings } = this.plugin.data;
+		root.toggleClass('rk-paper', settings.paperStyle);
 		const stats = this.plugin.stats();
 		const now = Date.now();
+		const records = sortRecords(this.plugin.data.records, 'asc');
 
-		const header = root.createDiv({ cls: 'pc-header' });
-		header.createEl('h3', { text: settings.passName });
-		const actions = header.createDiv({ cls: 'pc-actions' });
-		const recordBtn = actions.createEl('button', { text: 'Record', cls: 'mod-cta' });
-		recordBtn.onclick = () => new RecordModal(this.app, this.plugin).open();
-		const icsBtn = actions.createEl('button', { attr: { 'aria-label': 'Export reminders (.ics)' } });
-		setIcon(icsBtn, 'calendar-plus');
-		icsBtn.onclick = () => void this.plugin.exportIcs();
-		const reportBtn = actions.createEl('button', { attr: { 'aria-label': 'Export Markdown report' } });
+		const head = root.createDiv({ cls: 'rk-head' });
+		const headMain = head.createDiv({ cls: 'rk-head-main' });
+		headMain.createDiv({ cls: 'rk-kicker', text: 'Pass countdown' });
+		headMain.createEl('h3', { cls: 'rk-title', text: settings.passName });
+		const actions = head.createDiv({ cls: 'rk-head-actions' });
+		const reportBtn = actions.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': 'Export Markdown report' } });
 		setIcon(reportBtn, 'file-text');
 		reportBtn.onclick = () => void this.plugin.exportReport();
 
-		const meter = root.createDiv({ cls: 'pc-meter' });
-		const fill = meter.createDiv({ cls: 'pc-meter-fill' });
-		fill.style.setProperty('--pc-used', `${stats.total ? (stats.used / stats.total) * 100 : 0}%`);
-		root.createDiv({ cls: 'pc-meter-label', text: `${stats.used} used · ${stats.remaining} left of ${stats.total}` });
+		const stack = root.createDiv({ cls: 'rk-stack' });
 
-		const grid = root.createDiv({ cls: 'pc-grid' });
-		this.card(grid, 'Now',
-			stats.activeEndsAt ? `${formatDuration(stats.activeEndsAt.getTime() - now)} left` : 'No active pass',
-			stats.activeEndsAt ? `Ends ${formatDateTime(stats.activeEndsAt)}` : 'Record one after you activate it.',
-			stats.activeEndsAt ? 'good' : 'normal');
-		this.card(grid, 'Deadline',
-			stats.daysToDeadline === null ? 'Not set' : stats.daysToDeadline < 0 ? 'Passed' : `${Math.ceil(stats.daysToDeadline)} days`,
-			stats.deadline ? `Last activation ${formatDateTime(stats.deadline)}` : 'Set it in settings.',
-			stats.daysToDeadline === null ? 'warn' : stats.daysToDeadline < 0 ? 'danger' : stats.daysToDeadline < 30 ? 'warn' : 'normal');
-		this.card(grid, 'Pace',
-			stats.remaining === 0 ? 'All used' : stats.daysPerUse === null ? '—' : `${stats.daysPerUse.toFixed(1)} days / use`,
-			stats.fitBeforeDeadline !== null && stats.fitBeforeDeadline < stats.remaining
-				? `Only ${stats.fitBeforeDeadline} of ${stats.remaining} can still start before the deadline`
-				: stats.latestNextActivation && stats.remaining > 0 ? `Start the next one by ${formatDateTime(stats.latestNextActivation)} to use them all` : '',
-			stats.cadenceTone);
+		// How many are left: the one number this tool exists for.
+		const leftCard = stack.createDiv({ cls: 'rk-card' });
+		const big = leftCard.createDiv({ cls: 'pc-big' });
+		big.createSpan({ cls: 'pc-big-value', text: String(stats.remaining) });
+		big.createSpan({ cls: 'rk-muted', text: `left of ${stats.total}` });
+		const activeIndex = stats.active ? records.findIndex(record => record.id === stats.active?.id) : -1;
+		if (stats.total <= MAX_DOTS) {
+			const dots = leftCard.createDiv({ cls: 'pc-dots', attr: { 'aria-hidden': 'true' } });
+			for (let i = 0; i < stats.total; i++) {
+				dots.createSpan({ cls: `pc-dot ${i === activeIndex ? 'is-current' : i < stats.used ? 'is-used' : 'is-left'}` });
+			}
+		} else {
+			this.meter(leftCard, stats.total ? stats.used / stats.total : 0, '');
+		}
+		const split = leftCard.createDiv({ cls: 'rk-split pc-split' });
+		split.createSpan({ text: `${stats.used} used` });
+		split.createSpan({ text: stats.deadline ? `deadline ${formatDate(stats.deadline)}` : 'no deadline set' });
 
-		const list = root.createDiv({ cls: 'pc-list' });
-		list.createEl('h4', { text: 'History' });
-		const records = sortRecords(this.plugin.data.records, 'desc');
+		// The pass that is running now.
+		const current = stack.createDiv({ cls: 'rk-card is-flat' });
+		if (stats.active && stats.activeEndsAt) {
+			const start = parseDate(stats.active.activatedAt);
+			const end = stats.activeEndsAt;
+			current.createDiv({ cls: 'rk-label', text: `Current pass · #${activeIndex + 1}` });
+			const value = current.createDiv();
+			value.createSpan({ cls: 'rk-stat-value pc-duration', text: formatDuration(end.getTime() - now) });
+			value.createSpan({ cls: 'rk-stat-unit', text: 'left' });
+			const span = start ? end.getTime() - start.getTime() : 0;
+			this.meter(current, span > 0 && start ? (now - start.getTime()) / span : 0, 'is-good');
+			const range = current.createDiv({ cls: 'rk-split' });
+			range.createSpan({ text: start ? formatShort(start) : '—' });
+			range.createSpan({ text: `ends ${formatShort(end)}` });
+		} else {
+			current.createDiv({ cls: 'rk-label', text: 'Current pass' });
+			current.createDiv({ text: 'No active pass' });
+			current.createDiv({ cls: 'rk-cap', text: 'Record one right after you activate it.' });
+		}
+
+		this.paceCallout(stack, stats);
+
+		const buttons = stack.createDiv({ cls: 'rk-actions' });
+		const recordBtn = buttons.createEl('button', { text: 'Record activation', cls: 'mod-cta rk-wide pc-record' });
+		recordBtn.disabled = stats.remaining <= 0;
+		recordBtn.onclick = () => new RecordModal(this.app, this.plugin).open();
+		const icsBtn = buttons.createEl('button', { text: 'Export .ics', attr: { 'aria-label': 'Export reminders (.ics)' } });
+		icsBtn.onclick = () => void this.plugin.exportIcs();
+
+		const list = stack.createDiv({ cls: 'pc-list' });
+		list.createDiv({ cls: 'rk-label', text: 'History' });
 		if (records.length === 0) {
-			list.createDiv({ cls: 'pc-empty', text: 'No activations yet.' });
+			list.createDiv({ cls: 'rk-muted', text: 'No activations yet.' });
 			return;
 		}
-		records.forEach((record, i) => {
+		[...records].reverse().forEach((record, i) => {
 			const start = parseDate(record.activatedAt);
 			const end = parseDate(record.expiresAt);
 			const isActive = !!start && !!end && start.getTime() <= now && end.getTime() > now;
-			const row = list.createDiv({ cls: `pc-row${isActive ? ' is-active' : ''}` });
-			row.createDiv({ cls: 'pc-row-index', text: `#${records.length - i}` });
-			const body = row.createDiv({ cls: 'pc-row-body' });
-			body.createDiv({ cls: 'pc-row-dates', text: `${start ? formatDateTime(start) : '—'} → ${end ? formatDateTime(end) : '—'}` });
+			const row = list.createDiv({ cls: `rk-row pc-row${isActive ? ' is-active' : ''}` });
+			row.createSpan({ cls: 'pc-row-index rk-num', text: `#${records.length - i}` });
+			const body = row.createDiv({ cls: 'rk-grow' });
+			body.createDiv({ cls: 'rk-num', text: `${start ? formatShort(start) : '—'} → ${end ? formatShort(end) : '—'}` });
 			const extra = [record.label, record.note].filter(Boolean).join(' · ');
-			if (extra) body.createDiv({ cls: 'pc-row-note', text: extra });
+			if (extra) body.createDiv({ cls: 'rk-cap pc-row-note', text: extra });
+			if (isActive) row.createSpan({ cls: 'rk-chip is-good', text: 'active' });
 			const del = row.createEl('button', { cls: 'pc-row-delete clickable-icon', attr: { 'aria-label': 'Delete record' } });
 			setIcon(del, 'trash-2');
 			let armed = false;
@@ -236,11 +274,42 @@ class PassCountdownView extends ItemView {
 		});
 	}
 
-	private card(parent: HTMLElement, label: string, value: string, detail: string, tone: Tone) {
-		const card = parent.createDiv({ cls: `pc-card tone-${tone}` });
-		card.createDiv({ cls: 'pc-card-label', text: label });
-		card.createDiv({ cls: 'pc-card-value', text: value });
-		if (detail) card.createDiv({ cls: 'pc-card-detail', text: detail });
+	private meter(parent: HTMLElement, ratio: number, tone: string) {
+		const meter = parent.createDiv({ cls: `rk-meter ${tone}`.trim() });
+		const fill = meter.createDiv({ cls: 'rk-meter-fill' });
+		fill.style.setProperty('--rk-fill', `${Math.min(Math.max(ratio, 0), 1) * 100}%`);
+	}
+
+	/** One sentence that answers "when do I have to start the next one?". */
+	private paceCallout(parent: HTMLElement, stats: PassStats) {
+		const tone = stats.remaining === 0 ? 'good' : stats.cadenceTone;
+		const callout = parent.createDiv({ cls: `rk-callout${tone === 'normal' ? '' : ` is-${tone}`}` });
+		const text = callout.createDiv();
+		if (stats.remaining === 0) {
+			text.createEl('strong', { text: `All ${stats.total} uses are recorded.` });
+			return;
+		}
+		if (!stats.deadline || stats.daysToDeadline === null) {
+			text.appendText('Set a deadline in settings to see whether you can use them all.');
+			return;
+		}
+		if (stats.daysToDeadline <= 0) {
+			text.createEl('strong', { text: 'The deadline has passed. ' });
+			text.appendText(`${stats.remaining} can no longer be started.`);
+			return;
+		}
+		if (stats.fitBeforeDeadline !== null && stats.fitBeforeDeadline < stats.remaining) {
+			text.createEl('strong', { text: 'Getting tight. ' });
+			text.appendText(`Only ${stats.fitBeforeDeadline} of ${stats.remaining} can still start before the deadline.`);
+			return;
+		}
+		text.createEl('strong', { text: tone === 'warn' ? 'Getting tight. ' : 'On pace. ' });
+		if (stats.latestNextActivation) {
+			text.appendText(`To use all ${stats.remaining} before the deadline, start the next one by `);
+			text.createEl('strong', { text: formatDateTime(stats.latestNextActivation) });
+			text.appendText('.');
+		}
+		if (stats.daysPerUse !== null) text.createDiv({ cls: 'rk-cap', text: `${stats.daysPerUse.toFixed(1)} days per use left` });
 	}
 }
 
@@ -250,37 +319,52 @@ class RecordModal extends Modal {
 	}
 
 	onOpen() {
-		const { contentEl } = this;
+		const { contentEl, modalEl } = this;
 		const { settings } = this.plugin.data;
 		const stats = this.plugin.stats();
-		this.setTitle('Record an activation');
+		modalEl.addClass('pass-countdown-modal');
+		modalEl.toggleClass('rk-paper', settings.paperStyle);
+		this.setTitle('Record activation');
+		contentEl.createDiv({ cls: 'rk-modal-kicker', text: `${settings.passName} · #${stats.used + 1}` });
 
 		if (stats.remaining <= 0) {
-			contentEl.createDiv({ cls: 'pc-callout tone-danger', text: `All ${stats.total} uses are recorded.` });
+			contentEl.createDiv({ cls: 'rk-callout is-danger', text: `All ${stats.total} uses are recorded.` });
 			return;
 		}
 
 		let when = new Date();
 		let label = '';
 		let note = '';
-		const warning = contentEl.createDiv({ cls: 'pc-callout tone-warn' });
-		const checkOverlap = () => {
+
+		new Setting(contentEl)
+			.setName('Activated at')
+			.setDesc('Your local time.')
+			.addText(text => {
+				text.inputEl.type = 'datetime-local';
+				text.setValue(toLocalInput(when)).onChange(value => {
+					const parsed = new Date(value);
+					if (Number.isFinite(parsed.getTime())) { when = parsed; update(); }
+				});
+			});
+
+		// Show the result before saving: when this pass ends and how many are left after it.
+		const preview = contentEl.createDiv({ cls: 'rk-card is-flat pc-preview' });
+		const endCol = preview.createDiv();
+		endCol.createDiv({ cls: 'rk-cap', text: 'This pass will end' });
+		const endValue = endCol.createDiv({ cls: 'pc-preview-value rk-num' });
+		const leftCol = preview.createDiv({ cls: 'pc-preview-right' });
+		leftCol.createDiv({ cls: 'rk-cap', text: 'After this' });
+		leftCol.createDiv({ cls: 'pc-preview-value rk-num', text: `${stats.remaining - 1} left` });
+		const warning = contentEl.createDiv({ cls: 'rk-callout is-warn pc-overlap' });
+
+		const update = () => {
 			const end = new Date(when.getTime() + settings.passDays * MS_DAY);
+			endValue.setText(formatDateTime(end));
 			const overlap = overlappingRecords(this.plugin.data.records, when, end);
 			warning.toggle(overlap.length > 0);
 			warning.setText(overlap.length > 0 ? `This would overlap ${overlap.length === 1 ? 'another pass' : `${overlap.length} other passes`}. Check before activating another one.` : '');
 		};
 
-		new Setting(contentEl)
-			.setName('Activated at')
-			.setDesc(`Your local time. The pass ends ${settings.passDays} days later.`)
-			.addText(text => {
-				text.inputEl.type = 'datetime-local';
-				text.setValue(toLocalInput(when)).onChange(value => {
-					const parsed = new Date(value);
-					if (Number.isFinite(parsed.getTime())) { when = parsed; checkOverlap(); }
-				});
-			});
 		new Setting(contentEl)
 			.setName('Label')
 			.setDesc('Optional, e.g. the last characters of the code. Do not store the full code.')
@@ -288,16 +372,19 @@ class RecordModal extends Modal {
 		new Setting(contentEl)
 			.setName('Note')
 			.addText(text => text.onChange(value => { note = value; }));
-		checkOverlap();
+		update();
 
-		new Setting(contentEl)
-			.addButton(button => button.setButtonText('Cancel').onClick(() => this.close()))
-			.addButton(button => button.setButtonText('Save').setCta().onClick(async () => {
-				button.setDisabled(true);
-				await this.plugin.addRecord(createRecord(settings, when, label, note, new Date(), newId()));
-				new Notice(`Recorded. ${this.plugin.stats().remaining} left.`);
-				this.close();
-			}));
+		const foot = contentEl.createDiv({ cls: 'rk-modal-foot' });
+		foot.createDiv({ cls: 'rk-foot-note', text: `Ends ${settings.passDays} days after activation.` });
+		const cancel = foot.createEl('button', { text: 'Cancel' });
+		cancel.onclick = () => this.close();
+		const save = foot.createEl('button', { text: 'Save', cls: 'mod-cta' });
+		save.onclick = async () => {
+			save.disabled = true;
+			await this.plugin.addRecord(createRecord(settings, when, label, note, new Date(), newId()));
+			new Notice(`Recorded. ${this.plugin.stats().remaining} left.`);
+			this.close();
+		};
 	}
 
 	onClose() { this.contentEl.empty(); }
@@ -310,6 +397,8 @@ class ImportModal extends Modal {
 
 	onOpen() {
 		this.setTitle('Import activations from notes');
+		this.modalEl.addClass('pass-countdown-modal');
+		this.modalEl.toggleClass('rk-paper', this.plugin.data.settings.paperStyle);
 		let folder = '';
 		this.contentEl.createEl('p', { text: 'Reads notes in the folder whose frontmatter has activated_at (and optionally expires_at, activation_id). Notes already imported are skipped.' });
 		new Setting(this.contentEl)
@@ -338,6 +427,10 @@ class PassCountdownSettingTab extends PluginSettingTab {
 		const s = this.plugin.data.settings;
 		const save = () => void this.plugin.save();
 
+		new Setting(containerEl)
+			.setName('Paper & ink style')
+			.setDesc('Paper background, ink lines and serif numbers. Off follows your Obsidian theme.')
+			.addToggle(t => t.setValue(s.paperStyle).onChange(v => { s.paperStyle = v; save(); }));
 		new Setting(containerEl).setName('Pass name').addText(t => t.setValue(s.passName).onChange(v => { s.passName = v.trim() || DEFAULT_SETTINGS.passName; save(); }));
 		new Setting(containerEl).setName('Total uses').addText(t => {
 			t.inputEl.type = 'number';

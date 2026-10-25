@@ -9,6 +9,7 @@ export interface PassSettings {
 	reminderOffsets: string; // minutes before expiry, comma separated
 	icsPath: string;
 	reportPath: string;
+	paperStyle: boolean;
 }
 
 export interface PassRecord {
@@ -32,7 +33,8 @@ export const DEFAULT_SETTINGS: PassSettings = {
 	deadline: '2027-08-24T23:59:00+09:00',
 	reminderOffsets: '720,60,0',
 	icsPath: 'Pass Countdown/reminders.ics',
-	reportPath: 'Pass Countdown/report.md'
+	reportPath: 'Pass Countdown/report.md',
+	paperStyle: false
 };
 
 export type Tone = 'normal' | 'good' | 'warn' | 'danger';
@@ -272,6 +274,7 @@ export function normalizeData(raw: unknown): PassData {
 	if (!legacySettings.deadline && legacySettings.codeInputDeadline) settings.deadline = legacySettings.codeInputDeadline;
 	settings.totalUses = Math.max(1, Math.floor(Number(settings.totalUses) || DEFAULT_SETTINGS.totalUses));
 	settings.passDays = Math.max(1, Number(settings.passDays) || DEFAULT_SETTINGS.passDays);
+	settings.paperStyle = settings.paperStyle === true;
 	const records: PassRecord[] = Array.isArray(input.records)
 		? input.records
 			.filter(r => !!r && typeof r.id === 'string' && !!parseDate(r.activatedAt) && !!parseDate(r.expiresAt))

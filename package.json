@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-pass-countdown",
-	"version": "1.0.0",
+	"version": "1.1.0",
 	"description": "Count down multi-use passes with an expiry and a deadline.",
 	"main": "main.js",
 	"scripts": {

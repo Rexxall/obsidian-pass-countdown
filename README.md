@@ -64,12 +64,21 @@ npm run build
 npm test   # 10 tests: end times, pace, overlap, .ics, report escaping, import
 ```
 
+`styles.css` is generated. Edit `styles/plugin.css` (or the shared `styles/kit.css`, the same in all of my plugins) and run `npm run styles`.
+
 ## Known limits
 
 - One pass type per vault.
 - Reminders reach your phone through the calendar you import the `.ics` into; re-export after recording new passes.
 
 ## Changelog
+
+**1.1.0**
+
+- New panel layout: the number left comes first, with one dot per use; the running pass shows how long it has left; one line says when the next one has to start.
+- The record dialog shows when the pass will end and how many will be left before you save.
+- Optional **Paper & ink style** in settings (paper background, ink lines, serif numbers). Off by default, so the panel follows your theme.
+- Styles rewritten from scratch on a small shared style kit.
 
 **1.0.0** — First public release. Replaces two private single-purpose trackers: any number of uses and days, local-time input, overlap warning, pace, `.ics` reminders, report, and import from notes.
 

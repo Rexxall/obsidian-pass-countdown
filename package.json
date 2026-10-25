@@ -1,0 +1,22 @@
+{
+	"name": "obsidian-pass-countdown",
+	"version": "1.0.0",
+	"description": "Count down multi-use passes with an expiry and a deadline.",
+	"main": "main.js",
+	"scripts": {
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
+		"test": "node tests/run-tests.mjs"
+	},
+	"keywords": ["obsidian", "plugin", "pass", "countdown", "povo"],
+	"author": "Rexxall",
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^16.18.126",
+		"builtin-modules": "^3.3.0",
+		"esbuild": "0.17.3",
+		"obsidian": "latest",
+		"tslib": "2.4.0",
+		"typescript": "4.9.5"
+	}
+}

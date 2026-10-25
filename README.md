@@ -33,6 +33,10 @@ Pass Countdown keeps that count in Obsidian. It works for any pass with the same
 
 <img src="docs/screenshots/record.jpg" width="860">
 
+**Paper & ink style (optional).** Turn it on in settings for a paper background, ink lines and serif numbers. Off by default, so the panel follows your theme.
+
+<img src="docs/screenshots/paper-panel.jpg" width="860">
+
 ## Install
 
 1. Download `obsidian-pass-countdown-1.0.0.zip` from the latest release.

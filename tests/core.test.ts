@@ -37,6 +37,16 @@ test('stats: remaining, active pass and the latest start that still fits every p
 	assert.equal(stats.active?.id, 'a');
 	// Three passes of 7 days must fit before the deadline: the next must start 14 days before it.
 	assert.equal(stats.latestNextActivation?.toISOString(), new Date(new Date(settings.deadline).getTime() - 14 * MS_DAY).toISOString());
+	assert.equal(stats.fitBeforeDeadline, 3);
+});
+
+test('stats: says how many passes still fit once the latest start has passed', () => {
+	const big = { ...settings, totalUses: 52, deadline: '2027-08-24T23:59:00+09:00' };
+	const stats = computeStats({ settings: big, records: [] }, new Date('2026-10-25T00:00:00+09:00'));
+	// 303.99 days left: passes can start on day 0, 7, ..., 301, so 44 of 52 fit.
+	assert.equal(stats.fitBeforeDeadline, 44);
+	assert.equal(stats.cadenceTone, 'warn');
+	assert.ok(stats.latestNextActivation!.getTime() < new Date('2026-10-25T00:00:00+09:00').getTime());
 });
 
 test('pace turns to a warning when fewer days are left than one pass per remaining use needs', () => {

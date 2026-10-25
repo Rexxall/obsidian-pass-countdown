@@ -47,6 +47,8 @@ export interface PassStats {
 	daysToDeadline: number | null;
 	daysPerUse: number | null;
 	latestNextActivation: Date | null;
+	/** How many of the remaining passes can still start before the deadline, back to back. */
+	fitBeforeDeadline: number | null;
 	cadenceTone: Tone;
 }
 
@@ -106,14 +108,23 @@ export function computeStats(data: PassData, now: Date): PassStats {
 		? daysToDeadline / remaining
 		: null;
 
+	// The next pass can start once the current one ends; each later one passDays after that.
+	let fitBeforeDeadline: number | null = null;
+	if (deadline && remaining > 0) {
+		const earliestNext = Math.max(now.getTime(), activeEndsAt?.getTime() ?? 0);
+		fitBeforeDeadline = deadline.getTime() < earliestNext
+			? 0
+			: Math.min(remaining, Math.floor((deadline.getTime() - earliestNext) / (settings.passDays * MS_DAY)) + 1);
+	}
+
 	let cadenceTone: Tone = 'normal';
 	if (remaining > 0 && daysToDeadline !== null) {
 		if (daysToDeadline <= 0) cadenceTone = 'danger';
-		else if (daysPerUse !== null && daysPerUse < settings.passDays) cadenceTone = 'warn';
+		else if (fitBeforeDeadline !== null && fitBeforeDeadline < remaining) cadenceTone = 'warn';
 		else cadenceTone = 'good';
 	}
 
-	return { total, used, remaining, active, activeEndsAt, deadline, daysToDeadline, daysPerUse, latestNextActivation, cadenceTone };
+	return { total, used, remaining, active, activeEndsAt, deadline, daysToDeadline, daysPerUse, latestNextActivation, fitBeforeDeadline, cadenceTone };
 }
 
 export function parseReminderOffsets(value: string): number[] {

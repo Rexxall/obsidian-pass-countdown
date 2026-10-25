@@ -1,4 +1,4 @@
-import { App, ItemView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, WorkspaceLeaf, normalizePath, setIcon } from 'obsidian';
+import { App, ItemView, Modal, Notice, Plugin, PluginSettingTab, Setting, TFile, WorkspaceLeaf, moment, normalizePath, setIcon } from 'obsidian';
 import {
 	DEFAULT_SETTINGS,
 	MS_DAY,
@@ -19,8 +19,9 @@ import {
 
 const VIEW_TYPE = 'pass-countdown-view';
 
+/** Follows the Obsidian interface language rather than the system locale. */
 function formatDateTime(date: Date): string {
-	return date.toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+	return date.toLocaleString(moment.locale(), { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function formatDuration(ms: number): string {
@@ -197,7 +198,9 @@ class PassCountdownView extends ItemView {
 			stats.daysToDeadline === null ? 'warn' : stats.daysToDeadline < 0 ? 'danger' : stats.daysToDeadline < 30 ? 'warn' : 'normal');
 		this.card(grid, 'Pace',
 			stats.remaining === 0 ? 'All used' : stats.daysPerUse === null ? '—' : `${stats.daysPerUse.toFixed(1)} days / use`,
-			stats.latestNextActivation && stats.remaining > 0 ? `Start the next one by ${formatDateTime(stats.latestNextActivation)} to use them all` : '',
+			stats.fitBeforeDeadline !== null && stats.fitBeforeDeadline < stats.remaining
+				? `Only ${stats.fitBeforeDeadline} of ${stats.remaining} can still start before the deadline`
+				: stats.latestNextActivation && stats.remaining > 0 ? `Start the next one by ${formatDateTime(stats.latestNextActivation)} to use them all` : '',
 			stats.cadenceTone);
 
 		const list = root.createDiv({ cls: 'pc-list' });
@@ -265,7 +268,7 @@ class RecordModal extends Modal {
 			const end = new Date(when.getTime() + settings.passDays * MS_DAY);
 			const overlap = overlappingRecords(this.plugin.data.records, when, end);
 			warning.toggle(overlap.length > 0);
-			warning.setText(overlap.length > 0 ? `This overlaps ${overlap.length} pass(es) still running. Check before activating another one.` : '');
+			warning.setText(overlap.length > 0 ? `This would overlap ${overlap.length === 1 ? 'another pass' : `${overlap.length} other passes`}. Check before activating another one.` : '');
 		};
 
 		new Setting(contentEl)

@@ -4,6 +4,8 @@
    ========================================================================== */
 
 .pass-countdown.ap { padding: var(--ap-s4) var(--ap-s4) var(--ap-s5); }
+/* The panel itself scrolls, so the sticky bar must cover its top padding too */
+.pass-countdown.ap-view > .ap-head.ap-bar-glass { top: calc(-1 * var(--ap-s4)); }
 
 /* Count left: the one number this plugin exists for */
 .pass-countdown .pc-left { display: grid; gap: var(--ap-s1); }

@@ -18,6 +18,7 @@ import {
 	recordFromFrontmatter,
 	sortRecords
 } from './core';
+import { isZh, tr } from './i18n';
 
 const VIEW_TYPE = 'pass-countdown-view';
 const CODE_BLOCK = 'pass-countdown';
@@ -39,11 +40,13 @@ function formatDate(date: Date): string {
 }
 
 function formatDuration(ms: number): string {
-	if (ms <= 0) return '0 min';
+	const zh = isZh();
+	if (ms <= 0) return zh ? '0 分钟' : '0 min';
 	const days = Math.floor(ms / MS_DAY);
 	const hours = Math.floor((ms % MS_DAY) / 3_600_000);
-	if (days > 0) return `${days} d ${hours} h`;
+	if (days > 0) return zh ? `${days} 天 ${hours} 小时` : `${days} d ${hours} h`;
 	const minutes = Math.floor((ms % 3_600_000) / 60_000);
+	if (zh) return hours > 0 ? `${hours} 小时 ${minutes} 分` : `${minutes} 分钟`;
 	return hours > 0 ? `${hours} h ${minutes} min` : `${minutes} min`;
 }
 
@@ -67,16 +70,16 @@ export default class PassCountdownPlugin extends Plugin {
 		this.data = normalizeData(await this.loadData());
 
 		this.registerView(VIEW_TYPE, leaf => new PassCountdownView(leaf, this));
-		this.addRibbonIcon('ticket', 'Open pass countdown', () => void this.activateView());
+		this.addRibbonIcon('ticket', tr('Open pass countdown', '打开通行证倒计时'), () => void this.activateView());
 
-		this.addCommand({ id: 'open', name: 'Open tracker', callback: () => void this.activateView() });
-		this.addCommand({ id: 'record', name: 'Record an activation', callback: () => new RecordModal(this.app, this).open() });
-		this.addCommand({ id: 'export-ics', name: 'Export reminders (.ics)', callback: () => void this.exportIcs() });
-		this.addCommand({ id: 'export-report', name: 'Export Markdown report', callback: () => void this.exportReport() });
-		this.addCommand({ id: 'import-notes', name: 'Import activations from notes in a folder', callback: () => new ImportModal(this.app, this).open() });
+		this.addCommand({ id: 'open', name: tr('Open tracker', '打开倒计时面板'), callback: () => void this.activateView() });
+		this.addCommand({ id: 'record', name: tr('Record an activation', '记录一次激活'), callback: () => new RecordModal(this.app, this).open() });
+		this.addCommand({ id: 'export-ics', name: tr('Export reminders (.ics)', '导出提醒（.ics）'), callback: () => void this.exportIcs() });
+		this.addCommand({ id: 'export-report', name: tr('Export Markdown report', '导出 Markdown 报告'), callback: () => void this.exportReport() });
+		this.addCommand({ id: 'import-notes', name: tr('Import activations from notes in a folder', '从文件夹里的笔记导入激活记录'), callback: () => new ImportModal(this.app, this).open() });
 		this.addCommand({
 			id: 'insert-card',
-			name: 'Insert pass card into the current note',
+			name: tr('Insert pass card into the current note', '在当前笔记插入通行证卡片'),
 			editorCallback: editor => editor.replaceSelection(`\`\`\`${CODE_BLOCK}\n\`\`\`\n`)
 		});
 
@@ -114,9 +117,10 @@ export default class PassCountdownPlugin extends Plugin {
 	updateStatusBar() {
 		if (!this.statusBar) return;
 		const stats = this.stats();
-		const active = stats.activeEndsAt ? ` · ${formatDuration(stats.activeEndsAt.getTime() - Date.now())} left` : '';
+		const left = stats.activeEndsAt ? formatDuration(stats.activeEndsAt.getTime() - Date.now()) : '';
+		const active = left ? ` · ${tr(`${left} left`, `剩 ${left}`)}` : '';
 		this.statusBar.setText(`${stats.remaining}/${stats.total}${active}`);
-		this.statusBar.setAttr('aria-label', `${this.data.settings.passName}: ${stats.remaining} of ${stats.total} left`);
+		this.statusBar.setAttr('aria-label', `${this.data.settings.passName}: ${tr(`${stats.remaining} of ${stats.total} left`, `共 ${stats.total} 次，剩 ${stats.remaining} 次`)}`);
 	}
 
 	async activateView() {
@@ -148,8 +152,8 @@ export default class PassCountdownPlugin extends Plugin {
 		for (const reminder of due) {
 			const when = formatDateTime(reminder.at);
 			const message = reminder.kind === 'ending'
-				? `${name}: the current pass ends ${when}.`
-				: `${name}: start the next pass by ${when} to use every one before the deadline.`;
+				? tr(`${name}: the current pass ends ${when}.`, `${name}：当前这张 ${when} 到期。`)
+				: tr(`${name}: start the next pass by ${when} to use every one before the deadline.`, `${name}：最晚 ${when} 激活下一张，才能在截止前全部用完。`);
 			new Notice(message, 0);
 			this.data.notified.push(reminder.key);
 		}
@@ -174,7 +178,7 @@ export default class PassCountdownPlugin extends Plugin {
 
 	async exportIcs() {
 		const path = await this.writeVaultFile(this.data.settings.icsPath, buildIcs(this.data, new Date()));
-		new Notice(`Saved ${path}. Open it to add the reminders to your calendar.`);
+		new Notice(tr(`Saved ${path}. Open it to add the reminders to your calendar.`, `已保存 ${path}。打开它即可把提醒加入日历。`));
 	}
 
 	async exportReport() {
@@ -210,7 +214,7 @@ class PassCountdownView extends ItemView {
 	}
 
 	getViewType() { return VIEW_TYPE; }
-	getDisplayText() { return 'Pass countdown'; }
+	getDisplayText() { return tr('Pass countdown', '通行证倒计时'); }
 	getIcon() { return 'ticket'; }
 
 	async onOpen() { this.render(); }
@@ -228,26 +232,18 @@ class PassCountdownView extends ItemView {
 		// Glass bar: the panel scrolls under it.
 		const head = root.createDiv({ cls: 'ap-head ap-bar-glass' });
 		const headMain = head.createDiv({ cls: 'ap-head-main' });
-		headMain.createDiv({ cls: 'ap-eyebrow', text: 'Pass countdown' });
+		headMain.createDiv({ cls: 'ap-eyebrow', text: tr('Pass countdown', '通行证倒计时') });
 		headMain.createDiv({ cls: 'ap-title', text: settings.passName });
 		const actions = head.createDiv({ cls: 'ap-head-actions' });
-		const state = stats.remaining === 0 ? ['All used', ''] : stats.active ? ['Active', 'is-good'] : stats.daysToDeadline !== null && stats.daysToDeadline <= 0 ? ['Deadline passed', 'is-danger'] : ['Not active', ''];
-		actions.createSpan({ cls: `ap-pill ${state[1]}`.trim(), text: state[0] });
-		const reportBtn = actions.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': 'Export Markdown report' } });
+		actions.createSpan(statePill(stats));
+		const reportBtn = actions.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': tr('Export Markdown report', '导出 Markdown 报告') } });
 		setIcon(reportBtn, 'file-text');
 		reportBtn.onclick = () => void this.plugin.exportReport();
 
 		const stack = root.createDiv({ cls: 'ap-stack' });
 
 		// How many are left: the one number this tool exists for.
-		const leftCard = stack.createDiv({ cls: 'ap-card pc-left' });
-		const big = leftCard.createDiv({ cls: 'pc-count' });
-		big.createSpan({ cls: 'ap-big pc-big-value', text: String(stats.remaining) });
-		big.createSpan({ cls: 'pc-of', text: `of ${stats.total} left` });
-		this.meter(leftCard, stats.total ? stats.remaining / stats.total : 0, '');
-		const split = leftCard.createDiv({ cls: 'ap-split' });
-		split.createSpan({ text: `${stats.used} used` });
-		split.createSpan({ text: stats.deadline ? `Last activation ${formatDate(stats.deadline)}` : 'No deadline set' });
+		leftCard(stack.createDiv({ cls: 'ap-card pc-left' }), stats);
 
 		// The pass that is running now, with a ring for the time it has left.
 		const current = stack.createDiv({ cls: 'ap-card is-inset pc-current' });
@@ -255,34 +251,35 @@ class PassCountdownView extends ItemView {
 		if (stats.active && stats.activeEndsAt) {
 			const start = parseDate(stats.active.activatedAt);
 			const end = stats.activeEndsAt;
-			currentMain.createDiv({ cls: 'ap-eyebrow', text: `Current pass · #${activeIndex + 1}` });
+			currentMain.createDiv({ cls: 'ap-eyebrow', text: `${tr('Current pass', '当前这张')} · #${activeIndex + 1}` });
 			const value = currentMain.createDiv({ cls: 'pc-current-time' });
+			if (isZh()) value.appendText('还剩 ');
 			value.createSpan({ cls: 'pc-duration', text: formatDuration(end.getTime() - now) });
-			value.appendText(' left');
-			currentMain.createDiv({ cls: 'ap-cap', text: `Ends ${formatShort(end)}` });
+			if (!isZh()) value.appendText(' left');
+			currentMain.createDiv({ cls: 'ap-cap', text: tr(`Ends ${formatShort(end)}`, `${formatShort(end)} 到期`) });
 			const span = start ? end.getTime() - start.getTime() : 0;
 			this.ring(current, span > 0 ? (end.getTime() - now) / span : 0);
 		} else {
-			currentMain.createDiv({ cls: 'ap-eyebrow', text: 'Current pass' });
-			currentMain.createDiv({ cls: 'pc-current-time', text: 'No active pass' });
-			currentMain.createDiv({ cls: 'ap-cap', text: 'Record one right after you activate it.' });
+			currentMain.createDiv({ cls: 'ap-eyebrow', text: tr('Current pass', '当前这张') });
+			currentMain.createDiv({ cls: 'pc-current-time', text: tr('No active pass', '没有正在使用的') });
+			currentMain.createDiv({ cls: 'ap-cap', text: tr('Record one right after you activate it.', '激活后马上记一笔。') });
 		}
 
 		this.paceCallout(stack, stats);
 
 		const buttons = stack.createDiv({ cls: 'ap-actions pc-buttons' });
-		const recordBtn = buttons.createEl('button', { text: 'Record activation', cls: 'mod-cta ap-wide pc-record' });
+		const recordBtn = buttons.createEl('button', { text: tr('Record activation', '记录激活'), cls: 'mod-cta ap-wide pc-record' });
 		recordBtn.disabled = stats.remaining <= 0;
 		recordBtn.onclick = () => new RecordModal(this.app, this.plugin).open();
-		const icsBtn = buttons.createEl('button', { text: 'Export .ics', attr: { 'aria-label': 'Export reminders (.ics)' } });
+		const icsBtn = buttons.createEl('button', { text: tr('Export .ics', '导出 .ics'), attr: { 'aria-label': tr('Export reminders (.ics)', '导出提醒（.ics）') } });
 		icsBtn.onclick = () => void this.plugin.exportIcs();
 
 		const section = stack.createDiv({ cls: 'ap-section pc-history' });
-		section.createDiv({ cls: 'ap-section-title', text: 'History' });
+		section.createDiv({ cls: 'ap-section-title', text: tr('History', '记录') });
 		if (records.length === 0) {
 			const empty = section.createDiv({ cls: 'ap-group ap-empty' });
-			empty.createDiv({ cls: 'ap-empty-title', text: 'No activations yet' });
-			empty.createDiv({ cls: 'ap-empty-text', text: 'Record a pass right after you activate it, and the countdown starts.' });
+			empty.createDiv({ cls: 'ap-empty-title', text: tr('No activations yet', '还没有激活记录') });
+			empty.createDiv({ cls: 'ap-empty-text', text: tr('Record a pass right after you activate it, and the countdown starts.', '激活后马上记一笔，倒计时就开始了。') });
 			return;
 		}
 		const list = section.createDiv({ cls: 'ap-group' });
@@ -296,19 +293,22 @@ class PassCountdownView extends ItemView {
 			body.createDiv({ cls: 'ap-row-title ap-num', text: `${start ? formatShort(start) : '—'} → ${end ? formatShort(end) : '—'}` });
 			const extra = [record.label, record.note].filter(Boolean).join(' · ');
 			if (extra) body.createDiv({ cls: 'ap-row-desc pc-row-note', text: extra });
-			if (isActive) row.createSpan({ cls: 'ap-pill is-good', text: 'Active' });
-			const edit = row.createEl('button', { cls: 'pc-row-edit clickable-icon', attr: { 'aria-label': 'Edit record' } });
+			if (isActive) row.createSpan({ cls: 'ap-pill is-good', text: tr('Active', '使用中') });
+			// Shown on hover or keyboard focus; always shown on touch screens.
+			const rowActions = row.createDiv({ cls: 'ap-row-actions' });
+			const edit = rowActions.createEl('button', { cls: 'pc-row-edit clickable-icon', attr: { 'aria-label': tr('Edit record', '编辑') } });
 			setIcon(edit, 'pencil');
 			edit.onclick = () => new RecordModal(this.app, this.plugin, record).open();
-			const del = row.createEl('button', { cls: 'pc-row-delete clickable-icon', attr: { 'aria-label': 'Delete record' } });
+			const del = rowActions.createEl('button', { cls: 'pc-row-delete clickable-icon', attr: { 'aria-label': tr('Delete record', '删除') } });
 			setIcon(del, 'trash-2');
 			let armed = false;
 			del.onclick = () => {
 				if (!armed) {
 					armed = true;
 					del.addClass('is-armed');
-					del.setAttr('aria-label', 'Click again to delete');
-					window.setTimeout(() => { armed = false; del.removeClass('is-armed'); del.setAttr('aria-label', 'Delete record'); }, 4000);
+					rowActions.addClass('is-pinned');
+					del.setAttr('aria-label', tr('Click again to delete', '再点一次删除'));
+					window.setTimeout(() => { armed = false; del.removeClass('is-armed'); rowActions.removeClass('is-pinned'); del.setAttr('aria-label', tr('Delete record', '删除')); }, 4000);
 					return;
 				}
 				void this.plugin.removeRecord(record.id);
@@ -326,42 +326,36 @@ class PassCountdownView extends ItemView {
 		fg.setAttr('stroke-dashoffset', (circumference * (1 - Math.min(Math.max(ratio, 0), 1))).toFixed(2));
 	}
 
-	private meter(parent: HTMLElement, ratio: number, tone: string) {
-		const meter = parent.createDiv({ cls: `ap-meter ${tone}`.trim() });
-		const fill = meter.createDiv({ cls: 'ap-meter-fill' });
-		fill.setCssProps({ '--ap-value': `${Math.min(Math.max(ratio, 0), 1) * 100}%` });
-	}
-
 	/** One sentence that answers "when do I have to start the next one?". */
 	private paceCallout(parent: HTMLElement, stats: PassStats) {
 		const tone = stats.remaining === 0 ? 'good' : stats.cadenceTone;
 		const callout = parent.createDiv({ cls: `ap-notice${tone === 'normal' ? '' : ` is-${tone}`}` });
 		const text = callout.createDiv();
 		if (stats.remaining === 0) {
-			text.createEl('strong', { text: `All ${stats.total} uses are recorded.` });
+			text.createEl('strong', { text: tr(`All ${stats.total} uses are recorded.`, `${stats.total} 次已全部记录。`) });
 			return;
 		}
 		if (!stats.deadline || stats.daysToDeadline === null) {
-			text.appendText('Set a deadline in settings to see whether you can use them all.');
+			text.appendText(tr('Set a deadline in settings to see whether you can use them all.', '在设置里填截止时间，就能看出能不能全部用完。'));
 			return;
 		}
 		if (stats.daysToDeadline <= 0) {
-			text.createEl('strong', { text: 'The deadline has passed. ' });
-			text.appendText(`${stats.remaining} can no longer be started.`);
+			text.createEl('strong', { text: tr('The deadline has passed. ', '已过截止时间。') });
+			text.appendText(tr(`${stats.remaining} can no longer be started.`, `剩下的 ${stats.remaining} 次已无法激活。`));
 			return;
 		}
 		if (stats.fitBeforeDeadline !== null && stats.fitBeforeDeadline < stats.remaining) {
-			text.createEl('strong', { text: 'Getting tight. ' });
-			text.appendText(`Only ${stats.fitBeforeDeadline} of ${stats.remaining} can still start before the deadline.`);
+			text.createEl('strong', { text: tr('Getting tight. ', '时间紧了。') });
+			text.appendText(tr(`Only ${stats.fitBeforeDeadline} of ${stats.remaining} can still start before the deadline.`, `剩下 ${stats.remaining} 次，截止前只来得及激活 ${stats.fitBeforeDeadline} 次。`));
 			return;
 		}
-		text.createEl('strong', { text: tone === 'warn' ? 'Getting tight. ' : 'On pace. ' });
+		text.createEl('strong', { text: tone === 'warn' ? tr('Getting tight. ', '时间紧了。') : tr('On pace. ', '节奏正常。') });
 		if (stats.latestNextActivation) {
-			text.appendText(`To use all ${stats.remaining} before the deadline, start the next one by `);
+			text.appendText(tr(`To use all ${stats.remaining} before the deadline, start the next one by `, `要在截止前用完剩下的 ${stats.remaining} 次，下一张最晚在 `));
 			text.createEl('strong', { text: formatDateTime(stats.latestNextActivation) });
-			text.appendText('.');
+			text.appendText(tr('.', ' 激活。'));
 		}
-		if (stats.daysPerUse !== null) text.createDiv({ cls: 'ap-cap', text: `${stats.daysPerUse.toFixed(1)} days per use left` });
+		if (stats.daysPerUse !== null) text.createDiv({ cls: 'ap-cap', text: tr(`${stats.daysPerUse.toFixed(1)} days per use left`, `平均每次还有 ${stats.daysPerUse.toFixed(1)} 天`) });
 	}
 }
 
@@ -378,11 +372,11 @@ class RecordModal extends Modal {
 		const editing = this.editing;
 		modalEl.addClass('pass-countdown-modal', 'ap', 'ap-modal');
 		const position = editing ? sortRecords(this.plugin.data.records).findIndex(record => record.id === editing.id) + 1 : stats.used + 1;
-		this.setTitle(editing ? 'Edit activation' : 'Record activation');
+		this.setTitle(editing ? tr('Edit activation', '编辑激活记录') : tr('Record activation', '记录激活'));
 		contentEl.createDiv({ cls: 'ap-modal-kicker', text: `${settings.passName} · #${position}` });
 
 		if (!editing && stats.remaining <= 0) {
-			contentEl.createDiv({ cls: 'ap-notice is-danger', text: `All ${stats.total} uses are recorded.` });
+			contentEl.createDiv({ cls: 'ap-notice is-danger', text: tr(`All ${stats.total} uses are recorded.`, `${stats.total} 次已全部记录。`) });
 			return;
 		}
 
@@ -396,8 +390,8 @@ class RecordModal extends Modal {
 		};
 
 		new Setting(contentEl)
-			.setName('Activated at')
-			.setDesc('Your local time.')
+			.setName(tr('Activated at', '激活时间'))
+			.setDesc(tr('Your local time.', '本机当地时间。'))
 			.addText(text => {
 				text.inputEl.type = 'datetime-local';
 				text.setValue(toLocalInput(when)).onChange(value => {
@@ -409,11 +403,12 @@ class RecordModal extends Modal {
 		// Show the result before saving: when this pass ends and how many are left after it.
 		const preview = contentEl.createDiv({ cls: 'ap-card is-flat pc-preview' });
 		const endCol = preview.createDiv();
-		endCol.createDiv({ cls: 'ap-cap', text: 'This pass will end' });
+		endCol.createDiv({ cls: 'ap-cap', text: tr('This pass will end', '这张的到期时间') });
 		const endValue = endCol.createDiv({ cls: 'pc-preview-value ap-num' });
 		const leftCol = preview.createDiv({ cls: 'pc-preview-right' });
-		leftCol.createDiv({ cls: 'ap-cap', text: editing ? 'Left' : 'After this' });
-		leftCol.createDiv({ cls: 'pc-preview-value ap-num', text: `${editing ? stats.remaining : stats.remaining - 1} left` });
+		leftCol.createDiv({ cls: 'ap-cap', text: editing ? tr('Left', '剩余') : tr('After this', '记完后') });
+		const after = editing ? stats.remaining : stats.remaining - 1;
+		leftCol.createDiv({ cls: 'pc-preview-value ap-num', text: tr(`${after} left`, `剩 ${after} 次`) });
 		const warning = contentEl.createDiv({ cls: 'ap-notice is-warn pc-overlap' });
 
 		const update = () => {
@@ -421,31 +416,34 @@ class RecordModal extends Modal {
 			endValue.setText(formatDateTime(end));
 			const overlap = overlappingRecords(this.plugin.data.records, when, end, editing?.id);
 			warning.toggle(overlap.length > 0);
-			warning.setText(overlap.length > 0 ? `This would overlap ${overlap.length === 1 ? 'another pass' : `${overlap.length} other passes`}. Check before activating another one.` : '');
+			warning.setText(overlap.length > 0
+				? tr(`This would overlap ${overlap.length === 1 ? 'another pass' : `${overlap.length} other passes`}. Check before activating another one.`, `会和另外 ${overlap.length} 张的使用时间重叠。再激活之前先确认一下。`)
+				: '');
 		};
 
 		new Setting(contentEl)
-			.setName('Label')
-			.setDesc('Optional, such as the last characters of the code. Do not store the full code.')
+			.setName(tr('Label', '标签'))
+			.setDesc(tr('Optional, such as the last characters of the code. Do not store the full code.', '可不填，比如兑换码末几位。不要存完整的码。'))
 			.addText(text => text.setValue(label).onChange(value => { label = value; }));
 		new Setting(contentEl)
-			.setName('Note')
+			.setName(tr('Note', '备注'))
 			.addText(text => text.setValue(note).onChange(value => { note = value; }));
 		update();
 
 		const foot = contentEl.createDiv({ cls: 'ap-modal-foot' });
-		foot.createDiv({ cls: 'ap-foot-note', text: editing ? 'The pass keeps its length.' : `Ends ${settings.passDays} days after activation.` });
-		const cancel = foot.createEl('button', { text: 'Cancel' });
+		foot.createDiv({ cls: 'ap-foot-note', text: editing ? tr('The pass keeps its length.', '有效时长不变。') : tr(`Ends ${settings.passDays} days after activation.`, `激活后 ${settings.passDays} 天到期。`) });
+		const cancel = foot.createEl('button', { text: tr('Cancel', '取消') });
 		cancel.onclick = () => this.close();
-		const save = foot.createEl('button', { text: 'Save', cls: 'mod-cta' });
+		const save = foot.createEl('button', { text: tr('Save', '保存'), cls: 'mod-cta' });
 		save.onclick = async () => {
 			save.disabled = true;
 			if (editing) {
 				await this.plugin.updateRecord(editRecord(editing, when, label, note));
-				new Notice('Saved.');
+				new Notice(tr('Saved.', '已保存。'));
 			} else {
 				await this.plugin.addRecord(createRecord(settings, when, label, note, new Date(), newId()));
-				new Notice(`Recorded. ${this.plugin.stats().remaining} left.`);
+				const left = this.plugin.stats().remaining;
+				new Notice(tr(`Recorded. ${left} left.`, `已记录，还剩 ${left} 次。`));
 			}
 			this.close();
 		};
@@ -477,25 +475,25 @@ class PassEmbed extends MarkdownRenderChild {
 		const { settings } = this.plugin.data;
 		el.addClass('pass-countdown', 'pc-embed', 'ap');
 		const stats = this.plugin.stats();
-		const card = el.createDiv({ cls: 'ap-card' });
+		const card = el.createDiv({ cls: 'ap-card pc-left' });
 		const top = card.createDiv({ cls: 'pc-embed-top' });
-		const big = top.createDiv({ cls: 'pc-big' });
-		big.createSpan({ cls: 'pc-big-value pc-embed-value', text: String(stats.remaining) });
-		big.createSpan({ cls: 'ap-muted', text: `left of ${stats.total}` });
-		top.createDiv({ cls: 'ap-cap pc-embed-name', text: settings.passName });
+		top.createDiv({ cls: 'ap-eyebrow', text: settings.passName });
+		top.createSpan(statePill(stats));
+		leftCard(card, stats);
 		const lines = card.createDiv({ cls: 'pc-embed-lines' });
 		if (stats.activeEndsAt) {
-			lines.createDiv({ text: `Current pass: ${formatDuration(stats.activeEndsAt.getTime() - Date.now())} left, ends ${formatShort(stats.activeEndsAt)}` });
-		} else {
-			lines.createDiv({ cls: 'ap-muted', text: 'No active pass' });
+			const left = formatDuration(stats.activeEndsAt.getTime() - Date.now());
+			const ends = formatShort(stats.activeEndsAt);
+			lines.createDiv({ text: tr(`Current pass: ${left} left, ends ${ends}`, `当前这张还剩 ${left}，${ends} 到期`) });
 		}
 		if (stats.remaining > 0 && stats.daysToDeadline !== null && stats.daysToDeadline > 0) {
 			const tight = stats.fitBeforeDeadline !== null && stats.fitBeforeDeadline < stats.remaining;
+			const next = stats.latestNextActivation ? formatShort(stats.latestNextActivation) : '';
 			lines.createDiv({
 				cls: tight ? 'pc-embed-warn' : 'ap-muted',
 				text: tight
-					? `Only ${stats.fitBeforeDeadline} of ${stats.remaining} can still start before the deadline.`
-					: stats.latestNextActivation ? `Start the next one by ${formatShort(stats.latestNextActivation)}.` : ''
+					? tr(`Only ${stats.fitBeforeDeadline} of ${stats.remaining} can still start before the deadline.`, `剩下 ${stats.remaining} 次，截止前只来得及激活 ${stats.fitBeforeDeadline} 次。`)
+					: next ? tr(`Start the next one by ${next}.`, `下一张最晚 ${next} 激活。`) : ''
 			});
 		}
 	}
@@ -507,30 +505,30 @@ class ImportModal extends Modal {
 	}
 
 	onOpen() {
-		this.setTitle('Import activations from notes');
+		this.setTitle(tr('Import activations from notes', '从笔记导入激活记录'));
 		this.modalEl.addClass('pass-countdown-modal', 'ap', 'ap-modal');
 		let folder = '';
 		const intro = this.contentEl.createEl('p');
 		const [startField, endField, idField] = FRONTMATTER_FIELDS;
-		intro.appendText('Reads notes in the folder whose frontmatter has ');
+		intro.appendText(tr('Reads notes in the folder whose frontmatter has ', '读取文件夹里属性含 '));
 		intro.createEl('code', { text: startField });
-		intro.appendText(' (and optionally ');
+		intro.appendText(tr(' (and optionally ', '的笔记（可选 '));
 		intro.createEl('code', { text: endField });
-		intro.appendText(', ');
+		intro.appendText(tr(', ', '、'));
 		intro.createEl('code', { text: idField });
-		intro.appendText('). Notes already imported are skipped.');
+		intro.appendText(tr('). Notes already imported are skipped.', '）。已导入的会跳过。'));
 		new Setting(this.contentEl)
-			.setName('Folder')
+			.setName(tr('Folder', '文件夹'))
 			.addText(text => text.setPlaceholder('Activations').onChange(value => { folder = value.trim(); }));
 		new Setting(this.contentEl)
-			.addButton(button => button.setButtonText('Import').setCta().onClick(async () => {
+			.addButton(button => button.setButtonText(tr('Import', '导入')).setCta().onClick(async () => {
 				if (!folder) return;
 				const added = await this.plugin.importFromFolder(folder);
 				if (added === null) {
-					new Notice(`Folder not found: ${folder}`);
+					new Notice(tr(`Folder not found: ${folder}`, `找不到文件夹：${folder}`));
 					return;
 				}
-				new Notice(`Imported ${added} record(s).`);
+				new Notice(tr(`Imported ${added} record(s).`, `导入了 ${added} 条记录。`));
 				this.close();
 			}));
 	}
@@ -549,25 +547,25 @@ class PassCountdownSettingTab extends PluginSettingTab {
 	/** Obsidian 1.13+: rendered by Obsidian and indexed by settings search. */
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
 		return [
-			{ name: 'Pass name', control: { type: 'text', key: 'passName', placeholder: DEFAULT_SETTINGS.passName } },
-			{ name: 'Total uses', control: { type: 'number', key: 'totalUses', min: 1, step: 1, validate: v => (Number.isInteger(v) && v > 0 ? undefined : 'Enter a whole number above 0.') } },
-			{ name: 'Days per pass', desc: 'New records only; existing ones keep their end time.', control: { type: 'number', key: 'passDays', min: 1, step: 'any', validate: v => (v > 0 ? undefined : 'Enter a number above 0.') } },
-			{ name: 'Deadline', desc: DEADLINE_DESC, aliases: ['expiry', 'last activation'], control: { type: 'text', key: 'deadline', placeholder: DEFAULT_SETTINGS.deadline, validate: v => (!v.trim() || parseDate(v.trim()) ? undefined : 'Use a date and time with time zone, such as 2027-08-24T23:59:00+09:00.') } },
+			{ name: L.passName(), control: { type: 'text', key: 'passName', placeholder: DEFAULT_SETTINGS.passName } },
+			{ name: L.totalUses(), control: { type: 'number', key: 'totalUses', min: 1, step: 1, validate: v => (Number.isInteger(v) && v > 0 ? undefined : L.wholeNumber()) } },
+			{ name: L.passDays(), desc: L.passDaysDesc(), control: { type: 'number', key: 'passDays', min: 1, step: 'any', validate: v => (v > 0 ? undefined : L.aboveZero()) } },
+			{ name: L.deadline(), desc: L.deadlineDesc(), aliases: ['expiry', 'last activation', '截止'], control: { type: 'text', key: 'deadline', placeholder: DEFAULT_SETTINGS.deadline, validate: v => (!v.trim() || parseDate(v.trim()) ? undefined : L.deadlineInvalid()) } },
 			{
 				type: 'group',
-				heading: 'Reminders',
+				heading: L.reminders(),
 				items: [
-					{ name: 'Remind me in Obsidian', desc: 'Show a notice once when the current pass is about to end, and when the latest start that still fits every pass is near.', control: { type: 'toggle', key: 'inAppReminders' } },
-					{ name: 'Hours ahead', desc: 'How early the notice appears.', control: { type: 'number', key: 'reminderLeadHours', min: 1, step: 1, validate: v => (v > 0 ? undefined : 'Enter a number above 0.') } },
-					{ name: 'Calendar alerts before the end', desc: 'Minutes, comma separated. Used in the .ics export.', aliases: ['ics', 'calendar'], control: { type: 'text', key: 'reminderOffsets', placeholder: DEFAULT_SETTINGS.reminderOffsets } }
+					{ name: L.inApp(), desc: L.inAppDesc(), control: { type: 'toggle', key: 'inAppReminders' } },
+					{ name: L.leadHours(), desc: L.leadHoursDesc(), control: { type: 'number', key: 'reminderLeadHours', min: 1, step: 1, validate: v => (v > 0 ? undefined : L.aboveZero()) } },
+					{ name: L.offsets(), desc: L.offsetsDesc(), aliases: ['ics', 'calendar', '日历'], control: { type: 'text', key: 'reminderOffsets', placeholder: DEFAULT_SETTINGS.reminderOffsets } }
 				]
 			},
 			{
 				type: 'group',
-				heading: 'Exports',
+				heading: L.exports(),
 				items: [
-					{ name: 'Calendar file', desc: 'Where the .ics export is saved.', control: { type: 'text', key: 'icsPath', placeholder: DEFAULT_SETTINGS.icsPath } },
-					{ name: 'Report note', control: { type: 'text', key: 'reportPath', placeholder: DEFAULT_SETTINGS.reportPath } }
+					{ name: L.icsPath(), desc: L.icsPathDesc(), control: { type: 'text', key: 'icsPath', placeholder: DEFAULT_SETTINGS.icsPath } },
+					{ name: L.reportPath(), control: { type: 'text', key: 'reportPath', placeholder: DEFAULT_SETTINGS.reportPath } }
 				]
 			}
 		];
@@ -589,34 +587,76 @@ class PassCountdownSettingTab extends PluginSettingTab {
 		const s = this.plugin.data.settings;
 		const set = (key: SettingKey, value: unknown) => { applySetting(s, key, value); void this.plugin.save(); };
 
-		new Setting(containerEl).setName('Pass name').addText(t => t.setValue(s.passName).onChange(v => set('passName', v)));
-		new Setting(containerEl).setName('Total uses').addText(t => {
+		new Setting(containerEl).setName(L.passName()).addText(t => t.setValue(s.passName).onChange(v => set('passName', v)));
+		new Setting(containerEl).setName(L.totalUses()).addText(t => {
 			t.inputEl.type = 'number';
 			t.setValue(String(s.totalUses)).onChange(v => set('totalUses', Number(v)));
 		});
-		new Setting(containerEl).setName('Days per pass').setDesc('New records only; existing ones keep their end time.').addText(t => {
+		new Setting(containerEl).setName(L.passDays()).setDesc(L.passDaysDesc()).addText(t => {
 			t.inputEl.type = 'number';
 			t.setValue(String(s.passDays)).onChange(v => set('passDays', Number(v)));
 		});
-		new Setting(containerEl).setName('Deadline').setDesc(DEADLINE_DESC).addText(t => t.setValue(s.deadline).onChange(v => set('deadline', v)));
+		new Setting(containerEl).setName(L.deadline()).setDesc(L.deadlineDesc()).addText(t => t.setValue(s.deadline).onChange(v => set('deadline', v)));
 
-		new Setting(containerEl).setName('Reminders').setHeading();
-		new Setting(containerEl).setName('Remind me in Obsidian').setDesc('Show a notice once when the current pass is about to end, and when the latest start that still fits every pass is near.')
+		new Setting(containerEl).setName(L.reminders()).setHeading();
+		new Setting(containerEl).setName(L.inApp()).setDesc(L.inAppDesc())
 			.addToggle(t => t.setValue(s.inAppReminders).onChange(v => set('inAppReminders', v)));
-		new Setting(containerEl).setName('Hours ahead').addText(t => {
+		new Setting(containerEl).setName(L.leadHours()).setDesc(L.leadHoursDesc()).addText(t => {
 			t.inputEl.type = 'number';
 			t.setValue(String(s.reminderLeadHours)).onChange(v => set('reminderLeadHours', Number(v)));
 		});
-		new Setting(containerEl).setName('Calendar alerts before the end').setDesc('Minutes, comma separated. Used in the .ics export.')
+		new Setting(containerEl).setName(L.offsets()).setDesc(L.offsetsDesc())
 			.addText(t => t.setValue(s.reminderOffsets).onChange(v => set('reminderOffsets', v)));
 
-		new Setting(containerEl).setName('Exports').setHeading();
-		new Setting(containerEl).setName('Calendar file').addText(t => t.setValue(s.icsPath).onChange(v => set('icsPath', v)));
-		new Setting(containerEl).setName('Report note').addText(t => t.setValue(s.reportPath).onChange(v => set('reportPath', v)));
+		new Setting(containerEl).setName(L.exports()).setHeading();
+		new Setting(containerEl).setName(L.icsPath()).setDesc(L.icsPathDesc()).addText(t => t.setValue(s.icsPath).onChange(v => set('icsPath', v)));
+		new Setting(containerEl).setName(L.reportPath()).addText(t => t.setValue(s.reportPath).onChange(v => set('reportPath', v)));
 	}
 }
 
-const DEADLINE_DESC = 'Last moment you can activate, with time zone, such as 2027-08-24T23:59:00+09:00.';
+/** Setting labels, read each time the tab is drawn so a language change shows on the next open. */
+const L = {
+	passName: () => tr('Pass name', '名称'),
+	totalUses: () => tr('Total uses', '总次数'),
+	passDays: () => tr('Days per pass', '每张有效天数'),
+	passDaysDesc: () => tr('New records only; existing ones keep their end time.', '只影响新记录，已有记录的到期时间不变。'),
+	deadline: () => tr('Deadline', '截止时间'),
+	deadlineDesc: () => tr('Last moment you can activate, with time zone, such as 2027-08-24T23:59:00+09:00.', '最晚可以激活的时刻，带时区，例如 2027-08-24T23:59:00+09:00。'),
+	deadlineInvalid: () => tr('Use a date and time with time zone, such as 2027-08-24T23:59:00+09:00.', '请填带时区的日期时间，例如 2027-08-24T23:59:00+09:00。'),
+	wholeNumber: () => tr('Enter a whole number above 0.', '请填大于 0 的整数。'),
+	aboveZero: () => tr('Enter a number above 0.', '请填大于 0 的数。'),
+	reminders: () => tr('Reminders', '提醒'),
+	inApp: () => tr('Remind me in Obsidian', '在 Obsidian 里提醒'),
+	inAppDesc: () => tr('Show a notice once when the current pass is about to end, and when the latest start that still fits every pass is near.', '当前这张快到期、或快到下一张的最晚激活时间时，各弹一次提示。'),
+	leadHours: () => tr('Hours ahead', '提前小时数'),
+	leadHoursDesc: () => tr('How early the notice appears.', '提示提前多久出现。'),
+	offsets: () => tr('Calendar alerts before the end', '日历提前提醒'),
+	offsetsDesc: () => tr('Minutes, comma separated. Used in the .ics export.', '分钟数，用逗号隔开，用于导出的 .ics。'),
+	exports: () => tr('Exports', '导出'),
+	icsPath: () => tr('Calendar file', '日历文件'),
+	icsPathDesc: () => tr('Where the .ics export is saved.', '.ics 保存的位置。'),
+	reportPath: () => tr('Report note', '报告笔记')
+};
+
+/** Status of the whole pass set, for the panel header and the note card. */
+function statePill(stats: PassStats): { cls: string; text: string } {
+	if (stats.remaining === 0) return { cls: 'ap-pill', text: tr('All used', '已用完') };
+	if (stats.active) return { cls: 'ap-pill is-good', text: tr('Active', '使用中') };
+	if (stats.daysToDeadline !== null && stats.daysToDeadline <= 0) return { cls: 'ap-pill is-danger', text: tr('Deadline passed', '已过截止') };
+	return { cls: 'ap-pill', text: tr('Not active', '未在使用') };
+}
+
+/** The big count left, a meter for it and one line of context; shared by the panel and the note card. */
+function leftCard(card: HTMLElement, stats: PassStats) {
+	const big = card.createDiv({ cls: 'pc-count' });
+	big.createSpan({ cls: 'ap-big pc-big-value', text: String(stats.remaining) });
+	big.createSpan({ cls: 'pc-of', text: tr(`of ${stats.total} left`, `次剩余，共 ${stats.total} 次`) });
+	const meter = card.createDiv({ cls: 'ap-meter' });
+	meter.createDiv({ cls: 'ap-meter-fill' }).setCssProps({ '--ap-value': `${stats.total ? Math.min(Math.max(stats.remaining / stats.total, 0), 1) * 100 : 0}%` });
+	const split = card.createDiv({ cls: 'ap-split' });
+	split.createSpan({ text: tr(`${stats.used} used`, `已用 ${stats.used} 次`) });
+	split.createSpan({ text: stats.deadline ? tr(`Last activation ${formatDate(stats.deadline)}`, `最晚激活 ${formatDate(stats.deadline)}`) : tr('No deadline set', '未设截止时间') });
+}
 
 function asText(value: unknown): string {
 	return typeof value === 'string' ? value : typeof value === 'number' ? String(value) : '';

@@ -7,7 +7,7 @@
 
 /* Count left: the one number this plugin exists for */
 .pass-countdown .pc-left { display: grid; gap: var(--ap-s1); }
-.pass-countdown :is(.pc-count, .pc-big) { display: flex; align-items: baseline; gap: 6px; }
+.pass-countdown .pc-count { display: flex; align-items: baseline; gap: 6px; }
 .pass-countdown .pc-big-value { font-size: 56px; line-height: 60px; }
 .pass-countdown .pc-of { font: var(--ap-title-3); font-weight: 500; color: var(--ap-label-2); }
 
@@ -40,11 +40,12 @@
 .pass-countdown-modal .pc-preview-value { font: 600 17px/22px var(--ap-font-round); font-variant-numeric: tabular-nums; }
 .pass-countdown-modal .pc-overlap { margin-bottom: var(--ap-s2); }
 
-/* Card embedded in a note (```pass-countdown```) */
+/* Card embedded in a note (```pass-countdown```): the panel's count card */
 .pass-countdown.pc-embed { padding: 0; margin: var(--ap-s2) 0; }
-.pass-countdown.pc-embed .pc-embed-top { display: flex; align-items: baseline; justify-content: space-between; gap: var(--ap-s3); flex-wrap: wrap; }
-.pass-countdown.pc-embed .pc-embed-value { font: 600 34px/40px var(--ap-font-round); letter-spacing: -0.02em; }
-.pass-countdown.pc-embed .pc-embed-lines { margin-top: var(--ap-s2); font: var(--ap-callout); display: grid; gap: 3px; }
+.pass-countdown.pc-embed .pc-embed-top { display: flex; align-items: center; justify-content: space-between; gap: var(--ap-s3); }
+.pass-countdown.pc-embed .pc-big-value { font-size: 44px; line-height: 48px; }
+.pass-countdown.pc-embed .pc-embed-lines { margin-top: var(--ap-s1); padding-top: var(--ap-s2); box-shadow: inset 0 0.5px 0 var(--ap-sep); font: var(--ap-callout); display: grid; gap: 3px; }
+.pass-countdown.pc-embed .pc-embed-lines:empty { display: none; }
 .pass-countdown.pc-embed .pc-embed-warn { color: var(--ap-warn); }
 
 .pass-countdown-status { font-variant-numeric: tabular-nums; }

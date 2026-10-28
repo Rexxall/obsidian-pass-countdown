@@ -92,6 +92,9 @@ npm test   # 13 tests: end times, pace, overlap, .ics, report escaping, import, 
 - One-time reminders inside Obsidian before the running pass ends and before the latest start that still fits every pass.
 - Settings in groups (Reminders, Exports, Appearance). On Obsidian 1.13 and later they show up in settings search.
 - Import checks that the folder exists; reports and calendar files are written atomically.
+- Chinese interface when Obsidian is set to Chinese; English otherwise.
+- Edit and delete in the history appear when you point at a row (always shown on touch screens).
+- The pass card in notes matches the panel: the big count with a bar, then the running pass and the next start date.
 
 **1.1.0**
 
@@ -115,7 +118,7 @@ MIT
 - **记录一次激活：** 默认当前时间，可加简短标签，到期时间自动计算；与仍在生效的券重叠时提醒。
 - **面板：** 剩余次数、当前这张还剩多久、离截止还有几天，以及节奏：剩下每次平均能分到几天、想全部用完最晚什么时候开下一张；已经来不及时，显示还能用上几张。
 - **状态栏、日历提醒（.ics，默认到期前 12 小时、1 小时和到期时）、Markdown 报告、从笔记导入。**
-- **1.2.0 新增：** 任意笔记里插入 `pass-countdown` 代码块即显示剩余次数卡片；记错时间可编辑；Obsidian 内到期前提醒一次（默认提前 12 小时）；设置分组，1.13 以上可在设置搜索里搜到。
+- **1.2.0 新增：** 界面跟随 Obsidian 语言显示中文或英文；任意笔记里插入 `pass-countdown` 代码块即显示剩余次数卡片；记错时间可编辑；Obsidian 内到期前提醒一次（默认提前 12 小时）；设置分组，1.13 以上可在设置搜索里搜到。
 - **隐私：** 数据只在库里，不联网。不要存完整的兑换码。
 
 ## 日本語

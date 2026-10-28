@@ -84,3 +84,31 @@
 .pass-countdown-status {
 	font-variant-numeric: tabular-nums;
 }
+
+/* Card embedded in a note (```pass-countdown```) */
+.pass-countdown.pc-embed {
+	padding: 0;
+	margin: var(--size-4-2) 0;
+}
+
+.pass-countdown.pc-embed .pc-embed-top {
+	display: flex;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: var(--size-4-3);
+	flex-wrap: wrap;
+}
+
+.pass-countdown.pc-embed .pc-embed-value { font-size: 2.2em; }
+
+.pass-countdown.pc-embed .pc-embed-lines {
+	margin-top: var(--size-4-2);
+	font-size: var(--font-ui-small);
+	display: grid;
+	gap: 2px;
+}
+
+.pass-countdown.pc-embed .pc-embed-warn { color: var(--rk-warn); }
+
+.pass-countdown .pc-row-edit,
+.pass-countdown .pc-row-delete { flex: none; }

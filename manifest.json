@@ -1,9 +1,9 @@
 {
 	"id": "pass-countdown",
 	"name": "Pass Countdown",
-	"version": "1.1.0",
+	"version": "1.2.0",
 	"minAppVersion": "1.7.2",
-	"description": "Count down multi-use passes with an expiry and a deadline, like a 52-use 7-day data pass: uses left, time left on the current pass, pacing, and calendar reminders.",
+	"description": "Count down multi-use passes with a deadline. Shows uses left, time left on the current pass, the pace you need, and sends reminders.",
 	"author": "Rexxall",
 	"authorUrl": "https://github.com/Rexxall",
 	"isDesktopOnly": false

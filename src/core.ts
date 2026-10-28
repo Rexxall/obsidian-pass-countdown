@@ -10,6 +10,8 @@ export interface PassSettings {
 	icsPath: string;
 	reportPath: string;
 	paperStyle: boolean;
+	inAppReminders: boolean;
+	reminderLeadHours: number;
 }
 
 export interface PassRecord {
@@ -24,6 +26,8 @@ export interface PassRecord {
 export interface PassData {
 	settings: PassSettings;
 	records: PassRecord[];
+	/** Keys of in-app reminders already shown, so each one appears once. */
+	notified: string[];
 }
 
 export const DEFAULT_SETTINGS: PassSettings = {
@@ -34,7 +38,9 @@ export const DEFAULT_SETTINGS: PassSettings = {
 	reminderOffsets: '720,60,0',
 	icsPath: 'Pass Countdown/reminders.ics',
 	reportPath: 'Pass Countdown/report.md',
-	paperStyle: false
+	paperStyle: false,
+	inAppReminders: true,
+	reminderLeadHours: 12
 };
 
 export type Tone = 'normal' | 'good' | 'warn' | 'danger';
@@ -267,7 +273,7 @@ interface LegacyRecord {
 }
 
 export function normalizeData(raw: unknown): PassData {
-	const input = (raw && typeof raw === 'object' ? raw : {}) as { settings?: Partial<PassSettings> & { codeInputDeadline?: string; totalUses?: number }; records?: LegacyRecord[] };
+	const input = (raw && typeof raw === 'object' ? raw : {}) as { settings?: Partial<PassSettings> & { codeInputDeadline?: string; totalUses?: number }; records?: LegacyRecord[]; notified?: unknown };
 	const legacySettings = input.settings || {};
 	const settings: PassSettings = { ...DEFAULT_SETTINGS, ...legacySettings };
 	// Older single-purpose tracker stored the deadline under another name.
@@ -275,6 +281,8 @@ export function normalizeData(raw: unknown): PassData {
 	settings.totalUses = Math.max(1, Math.floor(Number(settings.totalUses) || DEFAULT_SETTINGS.totalUses));
 	settings.passDays = Math.max(1, Number(settings.passDays) || DEFAULT_SETTINGS.passDays);
 	settings.paperStyle = settings.paperStyle === true;
+	settings.inAppReminders = settings.inAppReminders !== false;
+	settings.reminderLeadHours = Math.max(0, Number(settings.reminderLeadHours) || 0) || DEFAULT_SETTINGS.reminderLeadHours;
 	const records: PassRecord[] = Array.isArray(input.records)
 		? input.records
 			.filter(r => !!r && typeof r.id === 'string' && !!parseDate(r.activatedAt) && !!parseDate(r.expiresAt))
@@ -287,7 +295,8 @@ export function normalizeData(raw: unknown): PassData {
 				createdAt: r.createdAt || (r.activatedAt as string)
 			}))
 		: [];
-	return { settings, records };
+	const notified = Array.isArray(input.notified) ? input.notified.filter((key): key is string => typeof key === 'string').slice(-200) : [];
+	return { settings, records, notified };
 }
 
 /** Read a record from note frontmatter with activated_at / expires_at fields. */
@@ -298,4 +307,54 @@ export function recordFromFrontmatter(fm: Record<string, unknown> | undefined, f
 	const end = parseDate(typeof fm.expires_at === 'string' ? fm.expires_at : undefined) ?? addDays(start, settings.passDays);
 	const id = typeof fm.activation_id === 'string' && fm.activation_id ? fm.activation_id : fallbackId;
 	return { id, activatedAt: start.toISOString(), expiresAt: end.toISOString(), label: '', note: '', createdAt: start.toISOString() };
+}
+
+/**
+ * Change when a recorded pass started, keeping its own length (which may differ
+ * from the current "days per pass" if that setting changed since).
+ */
+export function editRecord(record: PassRecord, activatedAt: Date, label: string, note: string): PassRecord {
+	const start = parseDate(record.activatedAt);
+	const end = parseDate(record.expiresAt);
+	const length = start && end ? end.getTime() - start.getTime() : 0;
+	return {
+		...record,
+		activatedAt: activatedAt.toISOString(),
+		expiresAt: new Date(activatedAt.getTime() + length).toISOString(),
+		label: label.trim(),
+		note: note.trim()
+	};
+}
+
+export interface DueReminder {
+	key: string;
+	kind: 'ending' | 'start-by';
+	at: Date;
+}
+
+/**
+ * Reminders that are due now and not yet shown: the running pass ends within the
+ * lead time, or the latest start that still fits every pass is within it.
+ */
+export function dueReminders(data: PassData, now: Date): DueReminder[] {
+	const { settings } = data;
+	if (!settings.inAppReminders) return [];
+	const lead = settings.reminderLeadHours * 3_600_000;
+	const seen = new Set(data.notified);
+	const stats = computeStats(data, now);
+	const due: DueReminder[] = [];
+	if (stats.active && stats.activeEndsAt) {
+		const left = stats.activeEndsAt.getTime() - now.getTime();
+		const key = `ending:${stats.active.id}`;
+		if (left > 0 && left <= lead && !seen.has(key)) due.push({ key, kind: 'ending', at: stats.activeEndsAt });
+	}
+	const next = stats.latestNextActivation;
+	if (next && stats.remaining > 0 && stats.fitBeforeDeadline === stats.remaining) {
+		const left = next.getTime() - now.getTime();
+		const key = `start-by:${next.toISOString()}`;
+		// Only useful when nothing is running past that moment.
+		const coveredUntil = stats.activeEndsAt?.getTime() ?? 0;
+		if (left > 0 && left <= lead && coveredUntil < next.getTime() && !seen.has(key)) due.push({ key, kind: 'start-by', at: next });
+	}
+	return due;
 }

@@ -30,6 +30,9 @@ Pass Countdown keeps that count in Obsidian. It works for any pass with the same
 - **Calendar reminders.** Export an `.ics` file with one event per pass and alerts before it ends (12 h, 1 h and at the end by default). Open it to add the reminders to Apple Calendar, Google Calendar or Outlook.
 - **Markdown report** of every activation, for your records.
 - **Import** activations from existing notes that have `activated_at` / `expires_at` in their frontmatter.
+- **Card in any note.** Add a code block with the language `pass-countdown` (or run *Insert pass card into the current note*) to show uses left, the running pass and the next start date inside a daily note or dashboard. It updates every minute.
+- **Edit a record** if you typed the wrong start time. The pass keeps its own length.
+- **Reminders inside Obsidian.** A notice appears once when the running pass is about to end, and once when the latest start that still fits every pass is near (12 hours ahead by default). Turn it off in settings.
 
 <img src="docs/screenshots/record.jpg" width="860">
 
@@ -39,8 +42,12 @@ Pass Countdown keeps that count in Obsidian. It works for any pass with the same
 
 ## Install
 
-1. Download `obsidian-pass-countdown-1.0.0.zip` from the latest release.
-2. Unzip it into `<your vault>/.obsidian/plugins/pass-countdown/`.
+**From Obsidian (once listed):** Settings → Community plugins → Browse, search for **Pass Countdown**.
+
+**Manually:**
+
+1. Download `main.js`, `manifest.json` and `styles.css` from the latest release.
+2. Put them in `<your vault>/.obsidian/plugins/pass-countdown/`.
 3. **Settings → Community plugins**, reload, enable **Pass Countdown**.
 4. **Settings → Pass Countdown:** set the name, total uses, days per pass and the deadline.
 
@@ -65,7 +72,7 @@ Build from source:
 ```bash
 npm install
 npm run build
-npm test   # 10 tests: end times, pace, overlap, .ics, report escaping, import
+npm test   # 13 tests: end times, pace, overlap, .ics, report escaping, import, editing, reminders
 ```
 
 `styles.css` is generated. Edit `styles/plugin.css` (or the shared `styles/kit.css`, the same in all of my plugins) and run `npm run styles`.
@@ -74,8 +81,17 @@ npm test   # 10 tests: end times, pace, overlap, .ics, report escaping, import
 
 - One pass type per vault.
 - Reminders reach your phone through the calendar you import the `.ics` into; re-export after recording new passes.
+- In-app reminders only appear while Obsidian is open; use the `.ics` export for alerts on your phone.
 
 ## Changelog
+
+**1.2.0**
+
+- Pass card for notes: a `pass-countdown` code block, plus a command to insert it.
+- Edit a recorded activation (start time, label, note).
+- One-time reminders inside Obsidian before the running pass ends and before the latest start that still fits every pass.
+- Settings in groups (Reminders, Exports, Appearance). On Obsidian 1.13 and later they show up in settings search.
+- Import checks that the folder exists; reports and calendar files are written atomically.
 
 **1.1.0**
 
@@ -99,6 +115,7 @@ MIT
 - **记录一次激活：** 默认当前时间，可加简短标签，到期时间自动计算；与仍在生效的券重叠时提醒。
 - **面板：** 剩余次数、当前这张还剩多久、离截止还有几天，以及节奏：剩下每次平均能分到几天、想全部用完最晚什么时候开下一张；已经来不及时，显示还能用上几张。
 - **状态栏、日历提醒（.ics，默认到期前 12 小时、1 小时和到期时）、Markdown 报告、从笔记导入。**
+- **1.2.0 新增：** 任意笔记里插入 `pass-countdown` 代码块即显示剩余次数卡片；记错时间可编辑；Obsidian 内到期前提醒一次（默认提前 12 小时）；设置分组，1.13 以上可在设置搜索里搜到。
 - **隐私：** 数据只在库里，不联网。不要存完整的兑换码。
 
 ## 日本語
@@ -108,4 +125,5 @@ MIT
 - **記録：** 開始時刻（初期値は現在）と短いラベル。終了時刻は自動計算し、まだ有効な回と重なると警告します。
 - **ダッシュボード：** 残り回数、今の回の残り時間、期限までの日数、ペース（残り 1 回あたりの日数と、全部使い切るための次回開始の最終時刻。間に合わない場合は、あと何回使えるか）。
 - **ステータスバー、カレンダー通知（.ics）、Markdown レポート、ノートからの取り込み。**
+- **1.2.0：** `pass-countdown` コードブロックで任意のノートに残り回数カードを表示。記録の編集。終了前に Obsidian 内で 1 回通知（初期値 12 時間前）。設定をグループ化し、1.13 以降は設定検索に対応。
 - **プライバシー：** データは保管庫の中だけで、通信は行いません。コード全体は保存しないでください。

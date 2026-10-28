@@ -8,6 +8,8 @@ import {
 	buildMarkdownReport,
 	computeStats,
 	createRecord,
+	dueReminders,
+	editRecord,
 	minutesToIcsDuration,
 	normalizeData,
 	overlappingRecords,
@@ -18,7 +20,7 @@ import {
 const settings = { ...DEFAULT_SETTINGS, totalUses: 4, passDays: 7, deadline: '2026-12-31T23:59:00+09:00' };
 
 function data(records: PassData['records'] = []): PassData {
-	return { settings, records };
+	return { settings, records, notified: [] };
 }
 
 test('pass ends exactly passDays later, independent of the local time zone', () => {
@@ -111,4 +113,38 @@ test('imports a record from note frontmatter', () => {
 	assert.equal(recordFromFrontmatter({ title: 'not a pass' }, 'x', settings), null);
 	const noEnd = recordFromFrontmatter({ activated_at: '2026-05-06T00:00:00Z' }, 'n', settings);
 	assert.equal(noEnd?.expiresAt, '2026-05-13T00:00:00.000Z');
+});
+
+test('editing a record moves its start and keeps its own length', () => {
+	const start = new Date('2026-10-01T00:00:00Z');
+	// Recorded when passes were 3 days long; the setting is 7 days now.
+	const old = createRecord({ ...settings, passDays: 3 }, start, 'a', '', start, 'e');
+	const moved = editRecord(old, new Date('2026-10-02T06:00:00Z'), ' b ', 'n');
+	assert.equal(moved.expiresAt, '2026-10-05T06:00:00.000Z');
+	assert.equal(moved.label, 'b');
+	assert.equal(moved.id, 'e');
+	assert.equal(moved.createdAt, old.createdAt);
+});
+
+test('in-app reminders: once each, only within the lead time', () => {
+	const s = { ...settings, totalUses: 2, deadline: '2026-12-31T23:59:00Z', reminderLeadHours: 12, inAppReminders: true };
+	const start = new Date('2026-10-01T00:00:00Z');
+	const d: PassData = { settings: s, records: [createRecord(s, start, '', '', start, 'p')], notified: [] };
+	// 7 days later minus 13 h: not yet.
+	assert.equal(dueReminders(d, new Date('2026-10-07T11:00:00Z')).length, 0);
+	const due = dueReminders(d, new Date('2026-10-07T13:00:00Z'));
+	assert.deepEqual(due.map(r => r.kind), ['ending']);
+	d.notified.push(due[0].key);
+	assert.equal(dueReminders(d, new Date('2026-10-07T20:00:00Z')).length, 0);
+	// One pass left: the latest start is the deadline itself.
+	const near = dueReminders(d, new Date('2026-12-31T12:00:00Z'));
+	assert.deepEqual(near.map(r => r.kind), ['start-by']);
+	assert.equal(dueReminders({ ...d, settings: { ...s, inAppReminders: false } }, new Date('2026-12-31T12:00:00Z')).length, 0);
+});
+
+test('new settings get defaults and the reminder log is kept', () => {
+	const d = normalizeData({ settings: { passName: 'x' }, records: [], notified: ['ending:a', 3] });
+	assert.equal(d.settings.inAppReminders, true);
+	assert.equal(d.settings.reminderLeadHours, 12);
+	assert.deepEqual(d.notified, ['ending:a']);
 });

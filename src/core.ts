@@ -9,7 +9,6 @@ export interface PassSettings {
 	reminderOffsets: string; // minutes before expiry, comma separated
 	icsPath: string;
 	reportPath: string;
-	paperStyle: boolean;
 	inAppReminders: boolean;
 	reminderLeadHours: number;
 }
@@ -38,7 +37,6 @@ export const DEFAULT_SETTINGS: PassSettings = {
 	reminderOffsets: '720,60,0',
 	icsPath: 'Pass Countdown/reminders.ics',
 	reportPath: 'Pass Countdown/report.md',
-	paperStyle: false,
 	inAppReminders: true,
 	reminderLeadHours: 12
 };
@@ -280,7 +278,6 @@ export function normalizeData(raw: unknown): PassData {
 	if (!legacySettings.deadline && legacySettings.codeInputDeadline) settings.deadline = legacySettings.codeInputDeadline;
 	settings.totalUses = Math.max(1, Math.floor(Number(settings.totalUses) || DEFAULT_SETTINGS.totalUses));
 	settings.passDays = Math.max(1, Number(settings.passDays) || DEFAULT_SETTINGS.passDays);
-	settings.paperStyle = settings.paperStyle === true;
 	settings.inAppReminders = settings.inAppReminders !== false;
 	settings.reminderLeadHours = Math.max(0, Number(settings.reminderLeadHours) || 0) || DEFAULT_SETTINGS.reminderLeadHours;
 	const records: PassRecord[] = Array.isArray(input.records)

@@ -22,8 +22,6 @@ import {
 const VIEW_TYPE = 'pass-countdown-view';
 const CODE_BLOCK = 'pass-countdown';
 const FRONTMATTER_FIELDS = ['activated_at', 'expires_at', 'activation_id'];
-/** Above this many uses the dot grid gets too dense; a meter is used instead. */
-const MAX_DOTS = 120;
 
 /** Follows the Obsidian interface language rather than the system locale. */
 function formatDateTime(date: Date): string {
@@ -220,88 +218,85 @@ class PassCountdownView extends ItemView {
 	render() {
 		const root = this.contentEl;
 		root.empty();
-		root.addClass('pass-countdown');
+		root.addClass('pass-countdown', 'ap', 'ap-view');
 		const { settings } = this.plugin.data;
-		root.toggleClass('rk-paper', settings.paperStyle);
 		const stats = this.plugin.stats();
 		const now = Date.now();
 		const records = sortRecords(this.plugin.data.records, 'asc');
+		const activeIndex = stats.active ? records.findIndex(record => record.id === stats.active?.id) : -1;
 
-		const head = root.createDiv({ cls: 'rk-head' });
-		const headMain = head.createDiv({ cls: 'rk-head-main' });
-		headMain.createDiv({ cls: 'rk-kicker', text: 'Pass countdown' });
-		headMain.createEl('h3', { cls: 'rk-title', text: settings.passName });
-		const actions = head.createDiv({ cls: 'rk-head-actions' });
+		// Glass bar: the panel scrolls under it.
+		const head = root.createDiv({ cls: 'ap-head ap-bar-glass' });
+		const headMain = head.createDiv({ cls: 'ap-head-main' });
+		headMain.createDiv({ cls: 'ap-eyebrow', text: 'Pass countdown' });
+		headMain.createDiv({ cls: 'ap-title', text: settings.passName });
+		const actions = head.createDiv({ cls: 'ap-head-actions' });
+		const state = stats.remaining === 0 ? ['All used', ''] : stats.active ? ['Active', 'is-good'] : stats.daysToDeadline !== null && stats.daysToDeadline <= 0 ? ['Deadline passed', 'is-danger'] : ['Not active', ''];
+		actions.createSpan({ cls: `ap-pill ${state[1]}`.trim(), text: state[0] });
 		const reportBtn = actions.createEl('button', { cls: 'clickable-icon', attr: { 'aria-label': 'Export Markdown report' } });
 		setIcon(reportBtn, 'file-text');
 		reportBtn.onclick = () => void this.plugin.exportReport();
 
-		const stack = root.createDiv({ cls: 'rk-stack' });
+		const stack = root.createDiv({ cls: 'ap-stack' });
 
 		// How many are left: the one number this tool exists for.
-		const leftCard = stack.createDiv({ cls: 'rk-card' });
-		const big = leftCard.createDiv({ cls: 'pc-big' });
-		big.createSpan({ cls: 'pc-big-value', text: String(stats.remaining) });
-		big.createSpan({ cls: 'rk-muted', text: `left of ${stats.total}` });
-		const activeIndex = stats.active ? records.findIndex(record => record.id === stats.active?.id) : -1;
-		if (stats.total <= MAX_DOTS) {
-			const dots = leftCard.createDiv({ cls: 'pc-dots', attr: { 'aria-hidden': 'true' } });
-			for (let i = 0; i < stats.total; i++) {
-				dots.createSpan({ cls: `pc-dot ${i === activeIndex ? 'is-current' : i < stats.used ? 'is-used' : 'is-left'}` });
-			}
-		} else {
-			this.meter(leftCard, stats.total ? stats.used / stats.total : 0, '');
-		}
-		const split = leftCard.createDiv({ cls: 'rk-split pc-split' });
+		const leftCard = stack.createDiv({ cls: 'ap-card pc-left' });
+		const big = leftCard.createDiv({ cls: 'pc-count' });
+		big.createSpan({ cls: 'ap-big pc-big-value', text: String(stats.remaining) });
+		big.createSpan({ cls: 'pc-of', text: `of ${stats.total} left` });
+		this.meter(leftCard, stats.total ? stats.remaining / stats.total : 0, '');
+		const split = leftCard.createDiv({ cls: 'ap-split' });
 		split.createSpan({ text: `${stats.used} used` });
-		split.createSpan({ text: stats.deadline ? `deadline ${formatDate(stats.deadline)}` : 'no deadline set' });
+		split.createSpan({ text: stats.deadline ? `Last activation ${formatDate(stats.deadline)}` : 'No deadline set' });
 
-		// The pass that is running now.
-		const current = stack.createDiv({ cls: 'rk-card is-flat' });
+		// The pass that is running now, with a ring for the time it has left.
+		const current = stack.createDiv({ cls: 'ap-card is-inset pc-current' });
+		const currentMain = current.createDiv({ cls: 'pc-current-main' });
 		if (stats.active && stats.activeEndsAt) {
 			const start = parseDate(stats.active.activatedAt);
 			const end = stats.activeEndsAt;
-			current.createDiv({ cls: 'rk-label', text: `Current pass · #${activeIndex + 1}` });
-			const value = current.createDiv();
-			value.createSpan({ cls: 'rk-stat-value pc-duration', text: formatDuration(end.getTime() - now) });
-			value.createSpan({ cls: 'rk-stat-unit', text: 'left' });
+			currentMain.createDiv({ cls: 'ap-eyebrow', text: `Current pass · #${activeIndex + 1}` });
+			const value = currentMain.createDiv({ cls: 'pc-current-time' });
+			value.createSpan({ cls: 'pc-duration', text: formatDuration(end.getTime() - now) });
+			value.appendText(' left');
+			currentMain.createDiv({ cls: 'ap-cap', text: `Ends ${formatShort(end)}` });
 			const span = start ? end.getTime() - start.getTime() : 0;
-			this.meter(current, span > 0 && start ? (now - start.getTime()) / span : 0, 'is-good');
-			const range = current.createDiv({ cls: 'rk-split' });
-			range.createSpan({ text: start ? formatShort(start) : '—' });
-			range.createSpan({ text: `ends ${formatShort(end)}` });
+			this.ring(current, span > 0 ? (end.getTime() - now) / span : 0);
 		} else {
-			current.createDiv({ cls: 'rk-label', text: 'Current pass' });
-			current.createDiv({ text: 'No active pass' });
-			current.createDiv({ cls: 'rk-cap', text: 'Record one right after you activate it.' });
+			currentMain.createDiv({ cls: 'ap-eyebrow', text: 'Current pass' });
+			currentMain.createDiv({ cls: 'pc-current-time', text: 'No active pass' });
+			currentMain.createDiv({ cls: 'ap-cap', text: 'Record one right after you activate it.' });
 		}
 
 		this.paceCallout(stack, stats);
 
-		const buttons = stack.createDiv({ cls: 'rk-actions' });
-		const recordBtn = buttons.createEl('button', { text: 'Record activation', cls: 'mod-cta rk-wide pc-record' });
+		const buttons = stack.createDiv({ cls: 'ap-actions pc-buttons' });
+		const recordBtn = buttons.createEl('button', { text: 'Record activation', cls: 'mod-cta ap-wide pc-record' });
 		recordBtn.disabled = stats.remaining <= 0;
 		recordBtn.onclick = () => new RecordModal(this.app, this.plugin).open();
 		const icsBtn = buttons.createEl('button', { text: 'Export .ics', attr: { 'aria-label': 'Export reminders (.ics)' } });
 		icsBtn.onclick = () => void this.plugin.exportIcs();
 
-		const list = stack.createDiv({ cls: 'pc-list' });
-		list.createDiv({ cls: 'rk-label', text: 'History' });
+		const section = stack.createDiv({ cls: 'ap-section pc-history' });
+		section.createDiv({ cls: 'ap-section-title', text: 'History' });
 		if (records.length === 0) {
-			list.createDiv({ cls: 'rk-muted', text: 'No activations yet.' });
+			const empty = section.createDiv({ cls: 'ap-group ap-empty' });
+			empty.createDiv({ cls: 'ap-empty-title', text: 'No activations yet' });
+			empty.createDiv({ cls: 'ap-empty-text', text: 'Record a pass right after you activate it, and the countdown starts.' });
 			return;
 		}
+		const list = section.createDiv({ cls: 'ap-group' });
 		[...records].reverse().forEach((record, i) => {
 			const start = parseDate(record.activatedAt);
 			const end = parseDate(record.expiresAt);
 			const isActive = !!start && !!end && start.getTime() <= now && end.getTime() > now;
-			const row = list.createDiv({ cls: `rk-row pc-row${isActive ? ' is-active' : ''}` });
-			row.createSpan({ cls: 'pc-row-index rk-num', text: `#${records.length - i}` });
-			const body = row.createDiv({ cls: 'rk-grow' });
-			body.createDiv({ cls: 'rk-num', text: `${start ? formatShort(start) : '—'} → ${end ? formatShort(end) : '—'}` });
+			const row = list.createDiv({ cls: `ap-row pc-row${isActive ? ' is-active' : ''}` });
+			row.createSpan({ cls: 'pc-row-index ap-num', text: `#${records.length - i}` });
+			const body = row.createDiv({ cls: 'ap-row-main' });
+			body.createDiv({ cls: 'ap-row-title ap-num', text: `${start ? formatShort(start) : '—'} → ${end ? formatShort(end) : '—'}` });
 			const extra = [record.label, record.note].filter(Boolean).join(' · ');
-			if (extra) body.createDiv({ cls: 'rk-cap pc-row-note', text: extra });
-			if (isActive) row.createSpan({ cls: 'rk-chip is-good', text: 'active' });
+			if (extra) body.createDiv({ cls: 'ap-row-desc pc-row-note', text: extra });
+			if (isActive) row.createSpan({ cls: 'ap-pill is-good', text: 'Active' });
 			const edit = row.createEl('button', { cls: 'pc-row-edit clickable-icon', attr: { 'aria-label': 'Edit record' } });
 			setIcon(edit, 'pencil');
 			edit.onclick = () => new RecordModal(this.app, this.plugin, record).open();
@@ -321,16 +316,26 @@ class PassCountdownView extends ItemView {
 		});
 	}
 
+	/** Ring for the share of the current pass that is still left. */
+	private ring(parent: HTMLElement, ratio: number) {
+		const circumference = 2 * Math.PI * 15;
+		const wrap = parent.createDiv({ cls: 'pc-ring', attr: { 'aria-hidden': 'true' } });
+		const svg = wrap.createSvg('svg', { attr: { viewBox: '0 0 36 36' } });
+		svg.createSvg('circle', { cls: 'pc-ring-bg', attr: { cx: 18, cy: 18, r: 15 } });
+		const fg = svg.createSvg('circle', { cls: 'pc-ring-fg', attr: { cx: 18, cy: 18, r: 15, 'stroke-dasharray': circumference.toFixed(2) } });
+		fg.setAttr('stroke-dashoffset', (circumference * (1 - Math.min(Math.max(ratio, 0), 1))).toFixed(2));
+	}
+
 	private meter(parent: HTMLElement, ratio: number, tone: string) {
-		const meter = parent.createDiv({ cls: `rk-meter ${tone}`.trim() });
-		const fill = meter.createDiv({ cls: 'rk-meter-fill' });
-		fill.style.setProperty('--rk-fill', `${Math.min(Math.max(ratio, 0), 1) * 100}%`);
+		const meter = parent.createDiv({ cls: `ap-meter ${tone}`.trim() });
+		const fill = meter.createDiv({ cls: 'ap-meter-fill' });
+		fill.setCssProps({ '--ap-value': `${Math.min(Math.max(ratio, 0), 1) * 100}%` });
 	}
 
 	/** One sentence that answers "when do I have to start the next one?". */
 	private paceCallout(parent: HTMLElement, stats: PassStats) {
 		const tone = stats.remaining === 0 ? 'good' : stats.cadenceTone;
-		const callout = parent.createDiv({ cls: `rk-callout${tone === 'normal' ? '' : ` is-${tone}`}` });
+		const callout = parent.createDiv({ cls: `ap-notice${tone === 'normal' ? '' : ` is-${tone}`}` });
 		const text = callout.createDiv();
 		if (stats.remaining === 0) {
 			text.createEl('strong', { text: `All ${stats.total} uses are recorded.` });
@@ -356,7 +361,7 @@ class PassCountdownView extends ItemView {
 			text.createEl('strong', { text: formatDateTime(stats.latestNextActivation) });
 			text.appendText('.');
 		}
-		if (stats.daysPerUse !== null) text.createDiv({ cls: 'rk-cap', text: `${stats.daysPerUse.toFixed(1)} days per use left` });
+		if (stats.daysPerUse !== null) text.createDiv({ cls: 'ap-cap', text: `${stats.daysPerUse.toFixed(1)} days per use left` });
 	}
 }
 
@@ -371,14 +376,13 @@ class RecordModal extends Modal {
 		const { settings } = this.plugin.data;
 		const stats = this.plugin.stats();
 		const editing = this.editing;
-		modalEl.addClass('pass-countdown-modal');
-		modalEl.toggleClass('rk-paper', settings.paperStyle);
+		modalEl.addClass('pass-countdown-modal', 'ap', 'ap-modal');
 		const position = editing ? sortRecords(this.plugin.data.records).findIndex(record => record.id === editing.id) + 1 : stats.used + 1;
 		this.setTitle(editing ? 'Edit activation' : 'Record activation');
-		contentEl.createDiv({ cls: 'rk-modal-kicker', text: `${settings.passName} · #${position}` });
+		contentEl.createDiv({ cls: 'ap-modal-kicker', text: `${settings.passName} · #${position}` });
 
 		if (!editing && stats.remaining <= 0) {
-			contentEl.createDiv({ cls: 'rk-callout is-danger', text: `All ${stats.total} uses are recorded.` });
+			contentEl.createDiv({ cls: 'ap-notice is-danger', text: `All ${stats.total} uses are recorded.` });
 			return;
 		}
 
@@ -403,14 +407,14 @@ class RecordModal extends Modal {
 			});
 
 		// Show the result before saving: when this pass ends and how many are left after it.
-		const preview = contentEl.createDiv({ cls: 'rk-card is-flat pc-preview' });
+		const preview = contentEl.createDiv({ cls: 'ap-card is-flat pc-preview' });
 		const endCol = preview.createDiv();
-		endCol.createDiv({ cls: 'rk-cap', text: 'This pass will end' });
-		const endValue = endCol.createDiv({ cls: 'pc-preview-value rk-num' });
+		endCol.createDiv({ cls: 'ap-cap', text: 'This pass will end' });
+		const endValue = endCol.createDiv({ cls: 'pc-preview-value ap-num' });
 		const leftCol = preview.createDiv({ cls: 'pc-preview-right' });
-		leftCol.createDiv({ cls: 'rk-cap', text: editing ? 'Left' : 'After this' });
-		leftCol.createDiv({ cls: 'pc-preview-value rk-num', text: `${editing ? stats.remaining : stats.remaining - 1} left` });
-		const warning = contentEl.createDiv({ cls: 'rk-callout is-warn pc-overlap' });
+		leftCol.createDiv({ cls: 'ap-cap', text: editing ? 'Left' : 'After this' });
+		leftCol.createDiv({ cls: 'pc-preview-value ap-num', text: `${editing ? stats.remaining : stats.remaining - 1} left` });
+		const warning = contentEl.createDiv({ cls: 'ap-notice is-warn pc-overlap' });
 
 		const update = () => {
 			const end = new Date(when.getTime() + passMs());
@@ -429,8 +433,8 @@ class RecordModal extends Modal {
 			.addText(text => text.setValue(note).onChange(value => { note = value; }));
 		update();
 
-		const foot = contentEl.createDiv({ cls: 'rk-modal-foot' });
-		foot.createDiv({ cls: 'rk-foot-note', text: editing ? 'The pass keeps its length.' : `Ends ${settings.passDays} days after activation.` });
+		const foot = contentEl.createDiv({ cls: 'ap-modal-foot' });
+		foot.createDiv({ cls: 'ap-foot-note', text: editing ? 'The pass keeps its length.' : `Ends ${settings.passDays} days after activation.` });
 		const cancel = foot.createEl('button', { text: 'Cancel' });
 		cancel.onclick = () => this.close();
 		const save = foot.createEl('button', { text: 'Save', cls: 'mod-cta' });
@@ -471,25 +475,24 @@ class PassEmbed extends MarkdownRenderChild {
 		const el = this.containerEl;
 		el.empty();
 		const { settings } = this.plugin.data;
-		el.addClass('pass-countdown', 'pc-embed');
-		el.toggleClass('rk-paper', settings.paperStyle);
+		el.addClass('pass-countdown', 'pc-embed', 'ap');
 		const stats = this.plugin.stats();
-		const card = el.createDiv({ cls: 'rk-card' });
+		const card = el.createDiv({ cls: 'ap-card' });
 		const top = card.createDiv({ cls: 'pc-embed-top' });
 		const big = top.createDiv({ cls: 'pc-big' });
 		big.createSpan({ cls: 'pc-big-value pc-embed-value', text: String(stats.remaining) });
-		big.createSpan({ cls: 'rk-muted', text: `left of ${stats.total}` });
-		top.createDiv({ cls: 'rk-cap pc-embed-name', text: settings.passName });
+		big.createSpan({ cls: 'ap-muted', text: `left of ${stats.total}` });
+		top.createDiv({ cls: 'ap-cap pc-embed-name', text: settings.passName });
 		const lines = card.createDiv({ cls: 'pc-embed-lines' });
 		if (stats.activeEndsAt) {
 			lines.createDiv({ text: `Current pass: ${formatDuration(stats.activeEndsAt.getTime() - Date.now())} left, ends ${formatShort(stats.activeEndsAt)}` });
 		} else {
-			lines.createDiv({ cls: 'rk-muted', text: 'No active pass' });
+			lines.createDiv({ cls: 'ap-muted', text: 'No active pass' });
 		}
 		if (stats.remaining > 0 && stats.daysToDeadline !== null && stats.daysToDeadline > 0) {
 			const tight = stats.fitBeforeDeadline !== null && stats.fitBeforeDeadline < stats.remaining;
 			lines.createDiv({
-				cls: tight ? 'pc-embed-warn' : 'rk-muted',
+				cls: tight ? 'pc-embed-warn' : 'ap-muted',
 				text: tight
 					? `Only ${stats.fitBeforeDeadline} of ${stats.remaining} can still start before the deadline.`
 					: stats.latestNextActivation ? `Start the next one by ${formatShort(stats.latestNextActivation)}.` : ''
@@ -505,8 +508,7 @@ class ImportModal extends Modal {
 
 	onOpen() {
 		this.setTitle('Import activations from notes');
-		this.modalEl.addClass('pass-countdown-modal');
-		this.modalEl.toggleClass('rk-paper', this.plugin.data.settings.paperStyle);
+		this.modalEl.addClass('pass-countdown-modal', 'ap', 'ap-modal');
 		let folder = '';
 		const intro = this.contentEl.createEl('p');
 		const [startField, endField, idField] = FRONTMATTER_FIELDS;
@@ -541,6 +543,7 @@ type SettingKey = keyof PassSettings;
 class PassCountdownSettingTab extends PluginSettingTab {
 	constructor(app: App, private plugin: PassCountdownPlugin) {
 		super(app, plugin);
+		this.containerEl.addClass('ap', 'ap-settings');
 	}
 
 	/** Obsidian 1.13+: rendered by Obsidian and indexed by settings search. */
@@ -565,13 +568,6 @@ class PassCountdownSettingTab extends PluginSettingTab {
 				items: [
 					{ name: 'Calendar file', desc: 'Where the .ics export is saved.', control: { type: 'text', key: 'icsPath', placeholder: DEFAULT_SETTINGS.icsPath } },
 					{ name: 'Report note', control: { type: 'text', key: 'reportPath', placeholder: DEFAULT_SETTINGS.reportPath } }
-				]
-			},
-			{
-				type: 'group',
-				heading: 'Appearance',
-				items: [
-					{ name: 'Paper and ink style', desc: 'Paper background, ink lines and serif numbers. Off follows your theme.', control: { type: 'toggle', key: 'paperStyle' } }
 				]
 			}
 		];
@@ -617,10 +613,6 @@ class PassCountdownSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName('Exports').setHeading();
 		new Setting(containerEl).setName('Calendar file').addText(t => t.setValue(s.icsPath).onChange(v => set('icsPath', v)));
 		new Setting(containerEl).setName('Report note').addText(t => t.setValue(s.reportPath).onChange(v => set('reportPath', v)));
-
-		new Setting(containerEl).setName('Appearance').setHeading();
-		new Setting(containerEl).setName('Paper and ink style').setDesc('Paper background, ink lines and serif numbers. Off follows your theme.')
-			.addToggle(t => t.setValue(s.paperStyle).onChange(v => set('paperStyle', v)));
 	}
 }
 
@@ -637,7 +629,6 @@ function applySetting(s: PassSettings, key: SettingKey, value: unknown) {
 		case 'passDays': { const n = Number(value); if (n > 0) s.passDays = n; break; }
 		case 'reminderLeadHours': { const n = Number(value); if (n > 0) s.reminderLeadHours = n; break; }
 		case 'deadline': { const v = asText(value).trim(); if (!v || parseDate(v)) s.deadline = v; break; }
-		case 'paperStyle': s.paperStyle = value === true; break;
 		case 'inAppReminders': s.inAppReminders = value === true; break;
 		case 'reminderOffsets': s.reminderOffsets = asText(value); break;
 		case 'passName': case 'icsPath': case 'reportPath': s[key] = asText(value).trim() || DEFAULT_SETTINGS[key]; break;

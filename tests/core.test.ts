@@ -148,3 +148,15 @@ test('new settings get defaults and the reminder log is kept', () => {
 	assert.equal(d.settings.reminderLeadHours, 12);
 	assert.deepEqual(d.notified, ['ending:a']);
 });
+
+test('the deadline is the last moment to activate: a last pass may start right at it and run past it', () => {
+	const s = { ...settings, totalUses: 1, deadline: '2026-12-31T23:59:00Z' };
+	const stats = computeStats({ settings: s, records: [], notified: [] }, new Date('2026-12-31T00:00:00Z'));
+	assert.equal(stats.latestNextActivation?.toISOString(), '2026-12-31T23:59:00.000Z');
+	assert.equal(stats.fitBeforeDeadline, 1);
+	assert.equal(stats.cadenceTone, 'good');
+	// Two left and less than one pass length before the deadline: only one can still start.
+	const two = computeStats({ settings: { ...s, totalUses: 2 }, records: [], notified: [] }, new Date('2026-12-31T00:00:00Z'));
+	assert.equal(two.fitBeforeDeadline, 1);
+	assert.equal(two.cadenceTone, 'warn');
+});

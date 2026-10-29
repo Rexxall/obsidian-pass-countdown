@@ -16,7 +16,10 @@ import {
 	overlappingRecords,
 	parseDate,
 	recordFromFrontmatter,
-	sortRecords
+	sortRecords,
+	SAMPLE_PREFIX,
+	isSample,
+	withoutSamples
 } from './core';
 import { isZh, tr } from './i18n';
 
@@ -168,7 +171,7 @@ export default class PassCountdownPlugin extends Plugin {
 
 	/** Show each due reminder once, while Obsidian is open. */
 	async checkReminders() {
-		const due = dueReminders(this.data, new Date());
+		const due = dueReminders(withoutSamples(this.data), new Date());
 		if (due.length === 0) return;
 		const name = this.data.settings.passName;
 		for (const reminder of due) {
@@ -181,6 +184,20 @@ export default class PassCountdownPlugin extends Plugin {
 		}
 		this.data.notified = this.data.notified.slice(-200);
 		await this.saveData(this.data);
+	}
+
+	/** One pass started two days ago, so the countdown, ring and pace show at once. */
+	async loadSample() {
+		const start = new Date(Date.now() - 2 * MS_DAY);
+		const end = new Date(start.getTime() + this.data.settings.passDays * MS_DAY);
+		this.data.records.push({ id: `${SAMPLE_PREFIX}${start.getTime()}`, activatedAt: start.toISOString(), expiresAt: end.toISOString(), label: tr('Sample', '示例'), note: tr('Sample record, remove it any time', '示例记录，随时可删'), createdAt: new Date().toISOString() });
+		await this.save();
+	}
+
+	async removeSamples() {
+		this.data.records = this.data.records.filter(record => !isSample(record));
+		await this.save();
+		new Notice(tr('Sample removed.', '示例已删除。'));
 	}
 
 	async removeRecord(id: string) {
@@ -199,12 +216,12 @@ export default class PassCountdownPlugin extends Plugin {
 	}
 
 	async exportIcs() {
-		const path = await this.writeVaultFile(this.data.settings.icsPath, buildIcs(this.data, new Date()));
+		const path = await this.writeVaultFile(this.data.settings.icsPath, buildIcs(withoutSamples(this.data), new Date()));
 		new Notice(tr(`Saved ${path}. Open it to add the reminders to your calendar.`, `已保存 ${path}。打开它即可把提醒加入日历。`));
 	}
 
 	async exportReport() {
-		const path = await this.writeVaultFile(this.data.settings.reportPath, buildMarkdownReport(this.data, new Date(), formatDateTime));
+		const path = await this.writeVaultFile(this.data.settings.reportPath, buildMarkdownReport(withoutSamples(this.data), new Date(), formatDateTime));
 		const file = this.app.vault.getFileByPath(path);
 		if (file) await this.app.workspace.getLeaf(true).openFile(file);
 	}
@@ -301,8 +318,14 @@ class PassCountdownView extends ItemView {
 		if (records.length === 0) {
 			const empty = section.createDiv({ cls: 'ap-group ap-empty' });
 			empty.createDiv({ cls: 'ap-empty-title', text: tr('No activations yet', '还没有激活记录') });
-			empty.createDiv({ cls: 'ap-empty-text', text: tr('Record a pass right after you activate it, and the countdown starts.', '激活后马上记一笔，倒计时就开始了。') });
+			empty.createDiv({ cls: 'ap-empty-text', text: tr('Record a pass right after you activate it, and the countdown starts. To look around first, load a sample pass; it is never exported and can be removed in one click.', '激活后马上记一笔，倒计时就开始了。想先看看效果，可以载入一条示例，它不会被导出，一键就能删。') });
+			empty.createEl('button', { text: tr('Load a sample', '载入示例'), cls: 'pc-load-sample' }).onclick = () => void this.plugin.loadSample();
 			return;
+		}
+		if (records.some(isSample)) {
+			const banner = section.createDiv({ cls: 'ap-notice pc-sample-banner' });
+			banner.createSpan({ cls: 'ap-grow', text: tr('A sample record is shown. It is never exported or reminded about.', '正在显示示例记录，它不会被导出，也不会提醒。') });
+			banner.createEl('button', { text: tr('Remove sample', '删除示例') }).onclick = () => void this.plugin.removeSamples();
 		}
 		const list = section.createDiv({ cls: 'ap-group' });
 		[...records].reverse().forEach((record, i) => {

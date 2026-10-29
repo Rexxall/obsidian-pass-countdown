@@ -521,3 +521,7 @@
 .pass-countdown.pc-embed .pc-embed-warn { color: var(--ap-warn); }
 
 .pass-countdown-status { font-variant-numeric: tabular-nums; }
+
+/* Sample record. */
+.pass-countdown .pc-load-sample { margin-top: 10px; }
+.pass-countdown .pc-sample-banner { display: flex; align-items: center; gap: 12px; padding: 10px 14px; margin-bottom: 8px; border-radius: 10px; }

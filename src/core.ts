@@ -17,6 +17,18 @@ export interface PassSettings {
 
 export type DeadlineMode = 'activate' | 'finish';
 
+/** Sample records carry this ID prefix; they are never exported or reminded about. */
+export const SAMPLE_PREFIX = 'sample-';
+
+export function isSample(record: { id: string }): boolean {
+	return record.id.startsWith(SAMPLE_PREFIX);
+}
+
+/** The data without sample records, for exports and reminders. */
+export function withoutSamples(data: PassData): PassData {
+	return { ...data, records: data.records.filter(record => !isSample(record)) };
+}
+
 export interface PassRecord {
 	id: string;
 	activatedAt: string; // ISO

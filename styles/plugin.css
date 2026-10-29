@@ -54,4 +54,4 @@
 
 /* Sample record. */
 .pass-countdown .pc-load-sample { margin-top: 10px; }
-.pass-countdown .pc-sample-banner { display: flex; align-items: center; gap: 12px; padding: 10px 14px; margin-bottom: 8px; border-radius: 10px; }
+.pass-countdown .pc-sample-banner { display: flex; align-items: center; gap: 12px; padding: 10px var(--ap-s4); margin-bottom: 8px; border-radius: 10px; }

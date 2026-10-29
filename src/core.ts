@@ -6,12 +6,16 @@ export interface PassSettings {
 	totalUses: number;
 	passDays: number;
 	deadline: string; // ISO 8601 with offset, e.g. 2027-08-24T23:59:00+09:00
+	/** "activate": the deadline is the last moment to start a pass. "finish": every pass must also end by it. */
+	deadlineMode: DeadlineMode;
 	reminderOffsets: string; // minutes before expiry, comma separated
 	icsPath: string;
 	reportPath: string;
 	inAppReminders: boolean;
 	reminderLeadHours: number;
 }
+
+export type DeadlineMode = 'activate' | 'finish';
 
 export interface PassRecord {
 	id: string;
@@ -34,6 +38,7 @@ export const DEFAULT_SETTINGS: PassSettings = {
 	totalUses: 52,
 	passDays: 7,
 	deadline: '2027-08-24T23:59:00+09:00',
+	deadlineMode: 'activate',
 	reminderOffsets: '720,60,0',
 	icsPath: 'Pass Countdown/reminders.ics',
 	reportPath: 'Pass Countdown/report.md',
@@ -49,6 +54,7 @@ export interface PassStats {
 	remaining: number;
 	active: PassRecord | null;
 	activeEndsAt: Date | null;
+	/** Last moment a pass can start: the deadline itself, or one pass length before it in "finish" mode. */
 	deadline: Date | null;
 	daysToDeadline: number | null;
 	daysPerUse: number | null;
@@ -97,7 +103,8 @@ export function computeStats(data: PassData, now: Date): PassStats {
 	const total = Math.max(0, Math.floor(settings.totalUses));
 	const used = data.records.length;
 	const remaining = Math.max(total - used, 0);
-	const deadline = parseDate(settings.deadline);
+	const setDeadline = parseDate(settings.deadline);
+	const deadline = setDeadline && settings.deadlineMode === 'finish' ? addDays(setDeadline, -settings.passDays) : setDeadline;
 	const daysToDeadline = deadline ? (deadline.getTime() - now.getTime()) / MS_DAY : null;
 
 	const current = activeRecords(data.records, now)
@@ -273,9 +280,15 @@ interface LegacyRecord {
 export function normalizeData(raw: unknown): PassData {
 	const input = (raw && typeof raw === 'object' ? raw : {}) as { settings?: Partial<PassSettings> & { codeInputDeadline?: string; totalUses?: number }; records?: LegacyRecord[]; notified?: unknown };
 	const legacySettings = input.settings || {};
-	const settings: PassSettings = { ...DEFAULT_SETTINGS, ...legacySettings };
+	// Only known settings are kept; fields of the older single-purpose tracker (Apple Reminders sync) are dropped.
+	const settings: PassSettings = { ...DEFAULT_SETTINGS };
+	for (const key of Object.keys(DEFAULT_SETTINGS) as (keyof PassSettings)[]) {
+		const value = legacySettings[key];
+		if (value !== undefined && typeof value === typeof DEFAULT_SETTINGS[key]) Object.assign(settings, { [key]: value });
+	}
 	// Older single-purpose tracker stored the deadline under another name.
 	if (!legacySettings.deadline && legacySettings.codeInputDeadline) settings.deadline = legacySettings.codeInputDeadline;
+	if (settings.deadlineMode !== 'finish') settings.deadlineMode = 'activate';
 	settings.totalUses = Math.max(1, Math.floor(Number(settings.totalUses) || DEFAULT_SETTINGS.totalUses));
 	settings.passDays = Math.max(1, Number(settings.passDays) || DEFAULT_SETTINGS.passDays);
 	settings.inAppReminders = settings.inAppReminders !== false;

@@ -22,6 +22,7 @@ import { isZh, tr } from './i18n';
 
 const VIEW_TYPE = 'pass-countdown-view';
 const CODE_BLOCK = 'pass-countdown';
+const OLD_TRACKER_ID = 'povo-7day-tracker';
 const FRONTMATTER_FIELDS = ['activated_at', 'expires_at', 'activation_id'];
 
 /** Follows the Obsidian interface language rather than the system locale. */
@@ -67,7 +68,16 @@ export default class PassCountdownPlugin extends Plugin {
 	readonly embeds = new Set<() => void>();
 
 	async onload() {
-		this.data = normalizeData(await this.loadData());
+		const saved: unknown = await this.loadData();
+		const imported = saved ? null : await this.importFromOldTracker();
+		this.data = normalizeData(saved ?? imported);
+		if (imported) {
+			await this.saveData(this.data);
+			this.app.workspace.onLayoutReady(() => new Notice(tr(
+				`Pass Countdown: imported ${this.data.records.length} activations from the old povo tracker. Disable it once everything looks right.`,
+				`Pass Countdown：已从旧版 povo 计数插件导入 ${this.data.records.length} 条激活记录。确认无误后可以停用旧插件。`
+			), 0));
+		}
 
 		this.registerView(VIEW_TYPE, leaf => new PassCountdownView(leaf, this));
 		this.addRibbonIcon('ticket', tr('Open pass countdown', '打开通行证倒计时'), () => void this.activateView());
@@ -95,6 +105,18 @@ export default class PassCountdownPlugin extends Plugin {
 		this.app.workspace.onLayoutReady(() => void this.checkReminders());
 
 		this.addSettingTab(new PassCountdownSettingTab(this.app, this));
+	}
+
+	/** The tracker this plugin grew out of had the id "povo-7day-tracker"; its data is read once when this one has none. */
+	private async importFromOldTracker(): Promise<unknown> {
+		const path = normalizePath(`${this.app.vault.configDir}/plugins/${OLD_TRACKER_ID}/data.json`);
+		try {
+			if (!(await this.app.vault.adapter.exists(path))) return null;
+			return JSON.parse(await this.app.vault.adapter.read(path)) as unknown;
+		} catch (error) {
+			console.error('Pass Countdown: could not read the old tracker data.', error);
+			return null;
+		}
 	}
 
 	async save() {
@@ -551,6 +573,7 @@ class PassCountdownSettingTab extends PluginSettingTab {
 			{ name: L.totalUses(), control: { type: 'number', key: 'totalUses', min: 1, step: 1, validate: v => (Number.isInteger(v) && v > 0 ? undefined : L.wholeNumber()) } },
 			{ name: L.passDays(), desc: L.passDaysDesc(), control: { type: 'number', key: 'passDays', min: 1, step: 'any', validate: v => (v > 0 ? undefined : L.aboveZero()) } },
 			{ name: L.deadline(), desc: L.deadlineDesc(), aliases: ['expiry', 'last activation', '截止'], control: { type: 'text', key: 'deadline', placeholder: DEFAULT_SETTINGS.deadline, validate: v => (!v.trim() || parseDate(v.trim()) ? undefined : L.deadlineInvalid()) } },
+			{ name: L.deadlineMode(), desc: L.deadlineModeDesc(), control: { type: 'dropdown', key: 'deadlineMode', options: L.deadlineModes() } },
 			{
 				type: 'group',
 				heading: L.reminders(),
@@ -597,6 +620,8 @@ class PassCountdownSettingTab extends PluginSettingTab {
 			t.setValue(String(s.passDays)).onChange(v => set('passDays', Number(v)));
 		});
 		new Setting(containerEl).setName(L.deadline()).setDesc(L.deadlineDesc()).addText(t => t.setValue(s.deadline).onChange(v => set('deadline', v)));
+		new Setting(containerEl).setName(L.deadlineMode()).setDesc(L.deadlineModeDesc())
+			.addDropdown(d => d.addOptions(L.deadlineModes()).setValue(s.deadlineMode).onChange(v => set('deadlineMode', v)));
 
 		new Setting(containerEl).setName(L.reminders()).setHeading();
 		new Setting(containerEl).setName(L.inApp()).setDesc(L.inAppDesc())
@@ -621,7 +646,10 @@ const L = {
 	passDays: () => tr('Days per pass', '每张有效天数'),
 	passDaysDesc: () => tr('New records only; existing ones keep their end time.', '只影响新记录，已有记录的到期时间不变。'),
 	deadline: () => tr('Deadline', '截止时间'),
-	deadlineDesc: () => tr('Last moment you can activate, with time zone, such as 2027-08-24T23:59:00+09:00.', '最晚可以激活的时刻，带时区，例如 2027-08-24T23:59:00+09:00。'),
+	deadlineDesc: () => tr('With time zone, such as 2027-08-24T23:59:00+09:00.', '带时区，例如 2027-08-24T23:59:00+09:00。'),
+	deadlineMode: () => tr('The deadline is', '截止时间指的是'),
+	deadlineModeDesc: () => tr('povo codes count as used once activated, so the default is the last moment to activate.', 'povo 的兑换码激活即算用掉，所以默认是“最后可激活时刻”。'),
+	deadlineModes: () => ({ activate: tr('The last moment to activate', '最后可激活时刻'), finish: tr('When every pass must have ended', '必须全部用完的时刻') }),
 	deadlineInvalid: () => tr('Use a date and time with time zone, such as 2027-08-24T23:59:00+09:00.', '请填带时区的日期时间，例如 2027-08-24T23:59:00+09:00。'),
 	wholeNumber: () => tr('Enter a whole number above 0.', '请填大于 0 的整数。'),
 	aboveZero: () => tr('Enter a number above 0.', '请填大于 0 的数。'),
@@ -670,6 +698,7 @@ function applySetting(s: PassSettings, key: SettingKey, value: unknown) {
 		case 'reminderLeadHours': { const n = Number(value); if (n > 0) s.reminderLeadHours = n; break; }
 		case 'deadline': { const v = asText(value).trim(); if (!v || parseDate(v)) s.deadline = v; break; }
 		case 'inAppReminders': s.inAppReminders = value === true; break;
+		case 'deadlineMode': s.deadlineMode = value === 'finish' ? 'finish' : 'activate'; break;
 		case 'reminderOffsets': s.reminderOffsets = asText(value); break;
 		case 'passName': case 'icsPath': case 'reportPath': s[key] = asText(value).trim() || DEFAULT_SETTINGS[key]; break;
 	}

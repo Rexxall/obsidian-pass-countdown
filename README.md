@@ -61,7 +61,7 @@ Everything stays in your vault: records in this plugin's `data.json`, exports wh
 ## How it works
 
 - Times are stored in UTC and shown in your local time, so travelling or a different system time zone does not shift a pass.
-- **Deadline** means the last moment a pass can be *activated* (for the povo bundle, the last day to enter the code). A pass started just before the deadline still runs its full length after it.
+- **Deadline** means, by default, the last moment a pass can be *activated* (for the povo bundle, the last day to enter the code). A pass started just before the deadline still runs its full length after it. If your passes must also *end* by the deadline, switch *The deadline is* in settings to the second option: every date then moves one pass length earlier.
 - *Latest next start* = deadline − (uses left − 1) × days per pass. If you start the next pass later than that, you can no longer start every remaining pass before the deadline when you use them back to back.
 - *Pace* turns orange when not every remaining pass can still be started before the deadline.
 
@@ -87,6 +87,8 @@ npm test   # 13 tests: end times, pace, overlap, .ics, report escaping, import, 
 
 - New look in the style of current Apple apps: solid cards and grouped lists for content, a glass header bar and glass dialogs, rounded numbers, a ring for the running pass. It follows your theme, accent colour and light or dark mode, and turns the glass solid when the system asks for reduced transparency. The paper style option is gone.
 - README: the deadline is the last moment to *activate* a pass, as the code has always counted it.
+- A second deadline mode for passes that must also end by the deadline.
+- Data from the single-purpose povo tracker this plugin grew out of (`povo-7day-tracker`) is imported on first start; its Apple Reminders settings are dropped.
 - Pass card for notes: a `pass-countdown` code block, plus a command to insert it.
 - Edit a recorded activation (start time, label, note).
 - One-time reminders inside Obsidian before the running pass ends and before the latest start that still fits every pass.

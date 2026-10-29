@@ -160,3 +160,34 @@ test('the deadline is the last moment to activate: a last pass may start right a
 	assert.equal(two.fitBeforeDeadline, 1);
 	assert.equal(two.cadenceTone, 'warn');
 });
+
+test('"finish" mode: every pass must also end by the deadline, so the last start is one pass earlier', () => {
+	const s = { ...settings, totalUses: 1, deadline: '2026-12-31T23:59:00Z', deadlineMode: 'finish' as const };
+	const stats = computeStats({ settings: s, records: [], notified: [] }, new Date('2026-12-20T00:00:00Z'));
+	assert.equal(stats.latestNextActivation?.toISOString(), '2026-12-24T23:59:00.000Z');
+	assert.equal(stats.deadline?.toISOString(), '2026-12-24T23:59:00.000Z');
+	// Past that point nothing can be started and still finish in time.
+	const late = computeStats({ settings: s, records: [], notified: [] }, new Date('2026-12-26T00:00:00Z'));
+	assert.equal(late.fitBeforeDeadline, 0);
+	assert.equal(late.cadenceTone, 'danger');
+});
+
+test('full data of the older tracker (shape of a real file, values made up) migrates without loss', () => {
+	const records = Array.from({ length: 12 }, (_, i) => {
+		const start = new Date(Date.UTC(2026, 3, 29 + i * 7, 10, 31));
+		return { id: `mov${i}`, activatedAt: start.toISOString(), expiresAt: new Date(start.getTime() + 7 * MS_DAY).toISOString(), codeFragment: i % 2 ? 'xy' : '', context: '', note: i === 3 ? 'exam week' : '', createdAt: start.toISOString(), updatedAt: start.toISOString() };
+	});
+	const legacy = {
+		settings: { totalUses: 52, codeInputDeadline: '2027-08-24T23:59:00+09:00', reportPath: 'Notes/povo report.md', icsPath: 'Notes/povo.ics', reminderOffsets: '720,60', autoSyncAppleReminders: true, appleReminderListName: 'List', appleReminderLeadMinutes: 0 },
+		records
+	};
+	const d = normalizeData(legacy);
+	assert.equal(d.records.length, 12);
+	assert.deepEqual(d.records.map(r => r.activatedAt), records.map(r => r.activatedAt));
+	assert.equal(d.records[3].note, 'exam week');
+	assert.equal(d.settings.reportPath, 'Notes/povo report.md');
+	assert.equal(d.settings.reminderOffsets, '720,60');
+	assert.equal(d.settings.deadlineMode, 'activate');
+	assert.ok(!('autoSyncAppleReminders' in d.settings), 'fields of the old tracker are dropped');
+	assert.equal(computeStats(d, new Date('2026-07-20T00:00:00Z')).remaining, 40);
+});

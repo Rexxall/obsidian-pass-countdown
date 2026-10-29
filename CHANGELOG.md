@@ -6,6 +6,7 @@
 - The interface language is read with Obsidian's `getLanguage()`; requires Obsidian 1.8.7.
 - README in English and Chinese, with a result picture first, a start-here list and what the plugin needs (no network, no account).
 - Settings rows, group titles, list chevrons and separators share one left and one right edge; the History title and the sample banner line up with the text inside the cards.
+- Toggles are sized through Obsidian's own toggle variables, so the knob sits 2px from every edge when off, on and pressed.
 
 ## 1.2.0
 

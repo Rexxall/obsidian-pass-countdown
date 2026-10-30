@@ -1,4 +1,4 @@
-import { App, ItemView, MarkdownRenderChild, Modal, Notice, Plugin, PluginSettingTab, Setting, SettingDefinitionItem, TFile, Vault, WorkspaceLeaf, moment, normalizePath, setIcon } from 'obsidian';
+import { App, ItemView, MarkdownRenderChild, Modal, Notice, Plugin, PluginSettingTab, Setting, SettingDefinitionItem, TFile, Vault, WorkspaceLeaf, getLanguage, normalizePath, setIcon } from 'obsidian';
 import {
 	DEFAULT_SETTINGS,
 	MS_DAY,
@@ -30,17 +30,17 @@ const FRONTMATTER_FIELDS = ['activated_at', 'expires_at', 'activation_id'];
 
 /** Follows the Obsidian interface language rather than the system locale. */
 function formatDateTime(date: Date): string {
-	return date.toLocaleString(moment.locale(), { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+	return date.toLocaleString(getLanguage(), { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 /** Month, day and time only; the year is shown when it is not this year. */
 function formatShort(date: Date): string {
 	const sameYear = date.getFullYear() === new Date().getFullYear();
-	return date.toLocaleString(moment.locale(), { year: sameYear ? undefined : 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+	return date.toLocaleString(getLanguage(), { year: sameYear ? undefined : 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 }
 
 function formatDate(date: Date): string {
-	return date.toLocaleDateString(moment.locale(), { year: 'numeric', month: 'short', day: 'numeric' });
+	return date.toLocaleDateString(getLanguage(), { year: 'numeric', month: 'short', day: 'numeric' });
 }
 
 function formatDuration(ms: number): string {
@@ -583,10 +583,19 @@ class ImportModal extends Modal {
 
 type SettingKey = keyof PassSettings;
 
+/** Marks each group's last row so the kit rounds its lower corners where Obsidian lays rows out flat under their headings. */
+function markGroupEnds(el: HTMLElement): void {
+	el.querySelectorAll('.setting-item:not(.setting-item-heading)').forEach(row => {
+		const next = row.nextElementSibling;
+		row.toggleClass('ap-group-end', !!next && (next.matches('.setting-item-heading') || !next.matches('.setting-item')));
+	});
+}
+
 class PassCountdownSettingTab extends PluginSettingTab {
 	constructor(app: App, private plugin: PassCountdownPlugin) {
 		super(app, plugin);
 		this.containerEl.addClass('ap', 'ap-settings');
+		new MutationObserver(() => markGroupEnds(this.containerEl)).observe(this.containerEl, { childList: true, subtree: true });
 	}
 
 	/** Obsidian 1.13+: rendered by Obsidian and indexed by settings search. */

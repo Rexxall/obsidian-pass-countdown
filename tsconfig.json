@@ -12,7 +12,11 @@
 		"strictNullChecks": true,
 		"resolveJsonModule": true,
 		"esModuleInterop": true,
-		"skipLibCheck": true
+		"skipLibCheck": true,
+		"lib": [
+			"DOM",
+			"ES2021"
+		]
 	},
 	"include": [
 		"src/**/*.ts"

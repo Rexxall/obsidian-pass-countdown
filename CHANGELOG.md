@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.0
+
+- **Passes the community directory's review with no findings.** Dates are formatted with Obsidian's `getLanguage()` instead of `moment.locale()`, and the TypeScript library is set to ES2021, so nothing depends on typings the scanner does not install.
+- Styles use no `!important`, `all` or `:has()`: buttons and search fields reset Obsidian's look property by property, reduced motion zeroes the kit's timing variables, and on Obsidian before 1.13 the plugin marks the last row of each settings group itself. Nothing looks different.
+- `npm run lint` runs the directory's rules twice, once with full types and once without the dev typings, plus stylelint for those three CSS rules; any warning fails it. A lockfile is added so `npm ci` works.
+
 ## 1.3.0
 
 - **A sample pass** for a new panel: one made-up pass shows the countdown, ring and pace; it is never exported or reminded about, and is removed in one click.

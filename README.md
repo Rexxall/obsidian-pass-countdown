@@ -83,6 +83,8 @@ npm test   # end times, pace, overlap, .ics, report escaping, import, editing, r
 
 ## Changelog
 
+**1.4.0:** no findings left in the community directory's review, with the same look. 
+
 **1.3.0:** a sample pass for a new panel, the interface language read with Obsidian's `getLanguage()`, and a README in English and Chinese. Full history in [CHANGELOG.md](CHANGELOG.md).
 
 ## License

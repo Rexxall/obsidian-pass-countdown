@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Releases are built by GitHub Actions from the tag, with a build provenance attestation for `main.js`, `manifest.json` and `styles.css` (`gh attestation verify`). The release stops if the tag, `manifest.json`, `package.json`, the lockfile and `versions.json` disagree.
+- CI runs lint, tests and the build on Node 20 and 22 for every push and pull request.
+
 ## 1.4.0
 
 - **Passes the community directory's review with no findings.** Dates are formatted with Obsidian's `getLanguage()` instead of `moment.locale()`, and the TypeScript library is set to ES2021, so nothing depends on typings the scanner does not install.

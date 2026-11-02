@@ -59,6 +59,8 @@
 
 **手动：** 从最新版本下载 `main.js`、`manifest.json`、`styles.css`，放进 `<库>/.obsidian/plugins/pass-countdown/`，重新加载后启用。
 
+**核验下载：** 从 1.4.1 起，Release 附件由 GitHub Actions 构建并附构建来源认证，可以用 `gh attestation verify main.js --repo Rexxall/obsidian-pass-countdown` 核验。
+
 **例子：povo2.0 7 天流量（52 次）。** 这就是默认设置：52 次，每次 7 天，截止 `2027-08-24T23:59:00+09:00`。具体条款以你自己的购买记录为准。
 
 ## 原理

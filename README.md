@@ -59,6 +59,8 @@ Nowhere. Records live in this plugin's `data.json` in your vault; the report and
 
 **Manually:** download `main.js`, `manifest.json` and `styles.css` from the latest release into `<vault>/.obsidian/plugins/pass-countdown/`, reload Obsidian and enable the plugin.
 
+**Checking a download:** from 1.4.1 on, GitHub Actions builds the release files and signs where they came from. Check one with `gh attestation verify main.js --repo Rexxall/obsidian-pass-countdown`.
+
 **Example: povo2.0 7-day data (52 uses).** This is the default setup: 52 uses, 7 days each, deadline `2027-08-24T23:59:00+09:00`. Check your own purchase for the exact terms.
 
 ## How it works

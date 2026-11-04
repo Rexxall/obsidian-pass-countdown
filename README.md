@@ -37,6 +37,12 @@ The plugin started with a Japanese mobile data bundle (52 uses of 7-day unlimite
 
 Nowhere. Records live in this plugin's `data.json` in your vault; the report and the `.ics` file are written where you choose. Store a short label if you need one, never the full prepaid code.
 
+### What the plugin touches
+
+- **Reads** its own `data.json`; once, on a first start with no data, the `data.json` of the older tracker it grew out of (`povo-7day-tracker`), if that exists; and, only when you run an import, the frontmatter of the notes in the folder you name.
+- **Writes** its own `data.json`, and, only when you export, the report note and the `.ics` file at the paths in settings (`Pass Countdown/report.md` and `Pass Countdown/reminders.ics` by default). Both paths are inside the vault, and an existing file there is replaced.
+- **Never** makes network requests, uses the clipboard, runs other programs, or reads or writes outside the vault.
+
 ## Features
 
 <img src="docs/screenshots/record.jpg" width="900" alt="Record dialog: start time, when this pass will end, how many will be left, and an overlap warning">
@@ -75,7 +81,7 @@ npm run build
 npm test   # end times, pace, overlap, .ics, report escaping, import, editing, reminders, migration
 ```
 
-`styles.css` is generated: edit `styles/plugin.css` and run `npm run styles`.
+`styles.css` is generated: edit `styles/plugin.css` and run `npm run styles`. For CI, releases and reporting issues, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
 ## Known limits
 
@@ -97,4 +103,4 @@ MIT
 
 ## 日本語
 
-「N 回分・1 回 D 日間・有効化の期限あり」の回数券を数えるプラグインです。残り回数、今の回の残り時間、すべて使い切るための次回開始の最終時刻を表示し、まだ有効な回と重なると警告します。Obsidian 内の通知と、カレンダー用の .ics 書き出しに対応。通信は一切行わず、データは保管庫の中だけに保存されます。コード全体は保存しないでください。
+「N 回分・1 回 D 日間・有効化の期限あり」の回数券を数えるプラグインです。残り回数、今の回の残り時間、すべて使い切るための次回開始の最終時刻を表示し、まだ有効な回と重なると警告します。Obsidian 内の通知と、カレンダー用の .ics 書き出しに対応。通信は一切行わず、クリップボードも使いません。データは保管庫の中だけに保存されます。コード全体は保存しないでください。

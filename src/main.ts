@@ -22,6 +22,8 @@ import {
 	withoutSamples
 } from './core';
 import { isZh, tr } from './i18n';
+import { registerBasesViewWhenReady } from './basesSupport';
+import { COUNTDOWN_VIEW_ID, countdownViewRegistration } from './basesView';
 
 const VIEW_TYPE = 'pass-countdown-view';
 const CODE_BLOCK = 'pass-countdown';
@@ -100,6 +102,8 @@ export default class PassCountdownPlugin extends Plugin {
 			const child = new PassEmbed(el, this);
 			ctx.addChild(child);
 		});
+
+		registerBasesViewWhenReady(this, COUNTDOWN_VIEW_ID, () => countdownViewRegistration(this));
 
 		this.statusBar = this.addStatusBarItem();
 		this.statusBar.addClass('pass-countdown-status');

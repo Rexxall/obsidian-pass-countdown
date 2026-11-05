@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- **Countdown view for Bases.** A base can show its notes as countdown cards: days left until a date property, soonest first, passed ones below, and progress when a start property is chosen. Without a date property chosen, the first one that holds dates is used. The view is registered only where Bases exists and is on; when Bases is turned on later, it appears within a few seconds.
+- Needs Obsidian 1.10 (was 1.8.7), the first version with Bases views. Older versions keep 1.4.1.
+- `CONTRIBUTING.md`: check startup time before a release.
+
 ## 1.4.1
 
 - Releases are built by GitHub Actions from the tag, with a build provenance attestation for `main.js`, `manifest.json` and `styles.css` (`gh attestation verify`). The release stops if the tag, `manifest.json`, `package.json`, the lockfile and `versions.json` disagree.

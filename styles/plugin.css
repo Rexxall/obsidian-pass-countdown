@@ -55,3 +55,28 @@
 /* Sample record. */
 .pass-countdown .pc-load-sample { margin-top: 10px; }
 .pass-countdown .pc-sample-banner { display: flex; align-items: center; gap: 12px; padding: 10px var(--ap-s4); margin-bottom: 8px; border-radius: 10px; }
+
+/* Countdown view in Bases: a grid of cards, the days left as the big number */
+.pass-countdown.pc-bases { padding: var(--ap-s3) var(--ap-s4) var(--ap-s5); }
+.pass-countdown .pc-bases-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(176px, 1fr)); gap: var(--ap-s3); }
+.pass-countdown .pc-bases-card { display: grid; align-content: start; gap: 2px; padding: var(--ap-s3) var(--ap-s4) var(--ap-s4); border-radius: var(--ap-r-card); background: var(--ap-group); box-shadow: var(--ap-hair); color: var(--ap-label); text-decoration: none; transition: transform var(--ap-fast, 120ms) var(--ap-ease), box-shadow var(--ap-fast, 120ms) var(--ap-ease); }
+.pass-countdown .pc-bases-card:hover { box-shadow: var(--ap-shadow-1); }
+.pass-countdown .pc-bases-card:active { transform: scale(0.98); }
+.pass-countdown .pc-bases-card:focus-visible { outline: 2px solid var(--ap-accent); outline-offset: 2px; }
+.pass-countdown .pc-bases-title { font: var(--ap-headline); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pass-countdown .pc-bases-left { display: flex; align-items: baseline; gap: 2px; margin-top: var(--ap-s1); }
+.pass-countdown .pc-bases-value { font: 600 34px/40px var(--ap-font-round); letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+.pass-countdown .pc-bases-value.is-word { font-size: 26px; letter-spacing: 0; }
+.pass-countdown .pc-bases-card.is-accent .pc-bases-value { color: var(--ap-accent); }
+.pass-countdown .pc-bases-card.is-warn .pc-bases-value { color: var(--ap-warn); }
+.pass-countdown .pc-bases-card.is-bad .pc-bases-value { color: var(--ap-bad); }
+.pass-countdown .pc-bases-card.is-past { background: transparent; }
+.pass-countdown .pc-bases-card.is-past .pc-bases-value { color: var(--ap-label-3); }
+.pass-countdown .pc-bases-date { font: var(--ap-subhead); color: var(--ap-label-2); }
+.pass-countdown .pc-bases-meter { margin-top: var(--ap-s2); }
+.pass-countdown .pc-bases-extra { display: flex; gap: 6px; font: var(--ap-subhead); color: var(--ap-label-2); overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pass-countdown .pc-bases-extra-name { color: var(--ap-label-3); flex: none; }
+.pass-countdown .pc-bases-past { margin-block: var(--ap-s5) 0; }
+.pass-countdown .pc-bases-past .ap-section-title { padding-inline: 0; }
+.pass-countdown .pc-bases-note { margin-top: var(--ap-s4); font: var(--ap-subhead); color: var(--ap-label-3); }
+@media (prefers-reduced-motion: reduce) { .pass-countdown .pc-bases-card { transition: none; } .pass-countdown .pc-bases-card:active { transform: none; } }

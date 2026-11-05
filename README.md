@@ -29,7 +29,7 @@ The plugin started with a Japanese mobile data bundle (52 uses of 7-day unlimite
 
 | | |
 |---|---|
-| Obsidian | 1.8.7 or later, desktop and mobile |
+| Obsidian | 1.10 or later, desktop and mobile (1.8 and 1.9 stay on 1.4.1) |
 | The plugin | Free, MIT licence |
 | Network | None. The plugin makes no network requests and needs no account or key. |
 
@@ -53,6 +53,7 @@ Nowhere. Records live in this plugin's `data.json` in your vault; the report and
 - **Status bar:** `47/52 · 3 d 4 h left`.
 - **Calendar reminders.** Export an `.ics` file with one event per pass and alerts before it ends (12 h, 1 h and at the end by default) for Apple Calendar, Google Calendar or Outlook.
 - **Reminders inside Obsidian,** once when the running pass is about to end and once when the latest start that still fits every pass is near.
+- **Countdown view for Bases.** In any base, switch the view to *Countdown*: one card per note with the days left until a date property (a deadline, an exam, a visa renewal), soonest first, with the ones that have passed below. Pick a start property to see how far along each one is. With Bases turned off nothing changes.
 - **Markdown report** of every activation, **import** from notes with `activated_at` / `expires_at` frontmatter, and **edit** a record if you typed the wrong start time.
 
 <img src="docs/screenshots/note-card.jpg" width="900" alt="A pass card inside a weekly note">

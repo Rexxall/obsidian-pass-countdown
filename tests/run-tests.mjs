@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outDir = await mkdtemp(path.join(tmpdir(), 'jws-tests-'));
-const testNames = ['core'];
+const testNames = ['core', 'countdown'];
 
 try {
     await build({

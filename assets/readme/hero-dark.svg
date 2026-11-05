@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="t d">
+  <title id="t">Pass Countdown</title>
+  <desc id="d">Use every day of a multi-use pass. Know when to start the next one. A pass with 52 uses of 7 days: 44 left, the current one has 6 days 23 hours left, and it is on pace: start the next one by December 5 to use them all.</desc>
+  <rect width="1200" height="400" rx="28" fill="#15141B"/>
+  <g id="title-block" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', sans-serif">
+    <text x="64" y="118" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17" letter-spacing="2" fill="#A48BFF">OBSIDIAN PLUGIN · OFFLINE, NO ACCOUNT</text>
+    <text x="62" y="196" font-size="64" font-weight="700" letter-spacing="-1.5" fill="#EEECF5">Pass Countdown</text>
+    <text x="64" y="252" font-size="29" fill="#EEECF5">Use every day of a multi-use pass.</text>
+    <text x="64" y="292" font-size="29" fill="#9C98AF">Know when to start the next one.</text>
+    <text x="64" y="346" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="17" fill="#9C98AF">free · no network · desktop and mobile</text>
+  </g>
+  <g id="project-proof" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', sans-serif">
+    <rect x="700" y="48" width="436" height="304" rx="20" fill="#1E1D26" stroke="#2C2A36"/>
+    <text x="728" y="92" font-size="18" fill="#9C98AF">Demo pass · 7 days</text>
+    <text x="726" y="158" font-size="64" font-weight="700" letter-spacing="-1.5" fill="#EEECF5">44</text>
+    <text x="818" y="158" font-size="24" font-weight="600" fill="#9C98AF">of 52 left</text>
+    <rect x="728" y="178" width="380" height="6" rx="3" fill="#2C2A36"/>
+    <rect x="728" y="178" width="321" height="6" rx="3" fill="#A48BFF"/>
+    <rect x="724" y="206" width="388" height="72" rx="14" fill="#15141B"/>
+    <text x="744" y="236" font-size="17" fill="#9C98AF">Current pass</text>
+    <text x="744" y="264" font-size="22" font-weight="600" fill="#EEECF5">6 d 23 h left</text>
+    <g transform="rotate(-90 1070 242)">
+      <circle cx="1070" cy="242" r="20" fill="none" stroke="#2C2A36" stroke-width="5"/>
+      <circle cx="1070" cy="242" r="20" fill="none" stroke="#A48BFF" stroke-width="5" stroke-linecap="round"
+              stroke-dasharray="125.7" stroke-dashoffset="2.5"/>
+    </g>
+    <rect x="724" y="296" width="388" height="40" rx="12" fill="#16301F"/>
+    <text x="742" y="322" font-size="18" fill="#5CC892"><tspan font-weight="700">On pace.</tspan> Next one by Dec 5, 11:59 PM</text>
+
+  </g>
+</svg>

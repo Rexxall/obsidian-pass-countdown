@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="400" viewBox="0 0 1200 400" role="img" aria-labelledby="t d">
+  <title id="t">Pass Countdown</title>
+  <desc id="d">多次券，一天也不浪费。 下一张什么时候开，一眼知道。 一张 52 次、每次 7 天的通行证：还剩 44 次，当前这张剩 6 天 23 小时，节奏正常，想全部用完，下一张最晚 12 月 5 日开。</desc>
+  <rect width="1200" height="400" rx="28" fill="#F7F6FB"/>
+  <g id="title-block" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', sans-serif">
+    <text x="64" y="118" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', sans-serif" font-size="17" letter-spacing="1" fill="#7A5AF0">OBSIDIAN 插件 · 离线，无需账号</text>
+    <text x="62" y="196" font-size="64" font-weight="700" letter-spacing="-1.5" fill="#1D1B26">Pass Countdown</text>
+    <text x="64" y="252" font-size="29" fill="#1D1B26">多次券，一天也不浪费。</text>
+    <text x="64" y="292" font-size="29" fill="#6B6780">下一张什么时候开，一眼知道。</text>
+    <text x="64" y="346" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', sans-serif" font-size="17" fill="#6B6780">免费 · 不联网 · 电脑和手机</text>
+  </g>
+  <g id="project-proof" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Hiragino Sans', sans-serif">
+    <rect x="700" y="48" width="436" height="304" rx="20" fill="#FFFFFF" stroke="#E4E1EE"/>
+    <text x="728" y="92" font-size="18" fill="#6B6780">示例通行证 · 7 天</text>
+    <text x="726" y="158" font-size="64" font-weight="700" letter-spacing="-1.5" fill="#1D1B26">44</text>
+    <text x="818" y="158" font-size="24" font-weight="600" fill="#6B6780">/ 52 次</text>
+    <rect x="728" y="178" width="380" height="6" rx="3" fill="#E4E1EE"/>
+    <rect x="728" y="178" width="321" height="6" rx="3" fill="#7A5AF0"/>
+    <rect x="724" y="206" width="388" height="72" rx="14" fill="#F7F6FB"/>
+    <text x="744" y="236" font-size="17" fill="#6B6780">当前这张</text>
+    <text x="744" y="264" font-size="22" font-weight="600" fill="#1D1B26">剩 6 天 23 小时</text>
+    <g transform="rotate(-90 1070 242)">
+      <circle cx="1070" cy="242" r="20" fill="none" stroke="#E4E1EE" stroke-width="5"/>
+      <circle cx="1070" cy="242" r="20" fill="none" stroke="#7A5AF0" stroke-width="5" stroke-linecap="round"
+              stroke-dasharray="125.7" stroke-dashoffset="2.5"/>
+    </g>
+    <rect x="724" y="296" width="388" height="40" rx="12" fill="#E5F4EC"/>
+    <text x="742" y="322" font-size="18" fill="#22855A"><tspan font-weight="700">节奏正常。</tspan> 下一张最晚 12月5日 23:59</text>
+
+  </g>
+</svg>

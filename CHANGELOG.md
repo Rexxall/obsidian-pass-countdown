@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 1.5.0
 
 - **Countdown view for Bases.** A base can show its notes as countdown cards: days left until a date property, soonest first, passed ones below, and progress when a start property is chosen. Without a date property chosen, the first one that holds dates is used. The view is registered only where Bases exists and is on; when Bases is turned on later, it appears within a few seconds.
 - Needs Obsidian 1.10 (was 1.8.7), the first version with Bases views. Older versions keep 1.4.1.

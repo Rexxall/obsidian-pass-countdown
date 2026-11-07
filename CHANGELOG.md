@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- **Numbers in serif** (Settings → Look, on by default): the big countdown number on the panel, in note cards and in the Countdown view for Bases is set in Didot italic, Georgia italic where Didot is not installed. Everything else keeps its look; turn it off for the previous numbers.
+
 ## 1.5.0
 
 - **Countdown view for Bases.** A base can show its notes as countdown cards: days left until a date property, soonest first, passed ones below, and progress when a start property is chosen. Without a date property chosen, the first one that holds dates is used. The view is registered only where Bases exists and is on; when Bases is turned on later, it appears within a few seconds.

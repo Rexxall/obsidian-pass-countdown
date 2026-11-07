@@ -572,3 +572,18 @@
 .pass-countdown .pc-bases-past .ap-section-title { padding-inline: 0; }
 .pass-countdown .pc-bases-note { margin-top: var(--ap-s4); font: var(--ap-subhead); color: var(--ap-label-2); }
 @media (prefers-reduced-motion: reduce) { .pass-countdown .pc-bases-card { transition: none; } .pass-countdown .pc-bases-card:active { transform: none; } }
+
+/* Serif numbers (setting, on by default): the one signature detail on the panel.
+   Didot bold italic on a Mac, Bodoni 72 or Georgia italic elsewhere; everything around it stays as it is. */
+.pass-countdown.pc-serif { --pc-serif: "Didot", "Bodoni 72", Georgia, "Times New Roman", serif; }
+.pass-countdown.pc-serif .pc-big-value,
+.pass-countdown.pc-serif .pc-bases-value:not(.is-word) {
+  font-family: var(--pc-serif);
+  font-style: italic;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  font-variant-numeric: lining-nums;
+}
+.pass-countdown.pc-serif .pc-big-value { font-size: 60px; line-height: 60px; }
+.pass-countdown.pc-embed.pc-serif .pc-big-value { font-size: 48px; line-height: 48px; }
+.pass-countdown.pc-serif .pc-bases-value:not(.is-word) { font-size: 38px; line-height: 40px; }

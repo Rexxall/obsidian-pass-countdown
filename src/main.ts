@@ -103,7 +103,7 @@ export default class PassCountdownPlugin extends Plugin {
 			ctx.addChild(child);
 		});
 
-		registerBasesViewWhenReady(this, COUNTDOWN_VIEW_ID, () => countdownViewRegistration(this));
+		registerBasesViewWhenReady(this, COUNTDOWN_VIEW_ID, () => countdownViewRegistration(this, () => this.data.settings.serifNumbers));
 
 		this.statusBar = this.addStatusBarItem();
 		this.statusBar.addClass('pass-countdown-status');
@@ -267,6 +267,7 @@ class PassCountdownView extends ItemView {
 		root.empty();
 		root.addClass('pass-countdown', 'ap', 'ap-view');
 		const { settings } = this.plugin.data;
+		root.toggleClass('pc-serif', settings.serifNumbers);
 		const stats = this.plugin.stats();
 		const now = Date.now();
 		const records = sortRecords(this.plugin.data.records, 'asc');
@@ -523,6 +524,7 @@ class PassEmbed extends MarkdownRenderChild {
 		el.empty();
 		const { settings } = this.plugin.data;
 		el.addClass('pass-countdown', 'pc-embed', 'ap');
+		el.toggleClass('pc-serif', settings.serifNumbers);
 		const stats = this.plugin.stats();
 		const card = el.createDiv({ cls: 'ap-card pc-left' });
 		const top = card.createDiv({ cls: 'pc-embed-top' });
@@ -621,6 +623,13 @@ class PassCountdownSettingTab extends PluginSettingTab {
 			},
 			{
 				type: 'group',
+				heading: L.look(),
+				items: [
+					{ name: L.serifNumbers(), desc: L.serifNumbersDesc(), aliases: ['font', 'Didot', '字体', '衬线'], control: { type: 'toggle', key: 'serifNumbers' } }
+				]
+			},
+			{
+				type: 'group',
 				heading: L.exports(),
 				items: [
 					{ name: L.icsPath(), desc: L.icsPathDesc(), control: { type: 'text', key: 'icsPath', placeholder: DEFAULT_SETTINGS.icsPath } },
@@ -669,6 +678,10 @@ class PassCountdownSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName(L.offsets()).setDesc(L.offsetsDesc())
 			.addText(t => t.setValue(s.reminderOffsets).onChange(v => set('reminderOffsets', v)));
 
+		new Setting(containerEl).setName(L.look()).setHeading();
+		new Setting(containerEl).setName(L.serifNumbers()).setDesc(L.serifNumbersDesc())
+			.addToggle(t => t.setValue(s.serifNumbers).onChange(v => set('serifNumbers', v)));
+
 		new Setting(containerEl).setName(L.exports()).setHeading();
 		new Setting(containerEl).setName(L.icsPath()).setDesc(L.icsPathDesc()).addText(t => t.setValue(s.icsPath).onChange(v => set('icsPath', v)));
 		new Setting(containerEl).setName(L.reportPath()).addText(t => t.setValue(s.reportPath).onChange(v => set('reportPath', v)));
@@ -696,6 +709,9 @@ const L = {
 	leadHoursDesc: () => tr('How early the notice appears.', '提示提前多久出现。'),
 	offsets: () => tr('Calendar alerts before the end', '日历提前提醒'),
 	offsetsDesc: () => tr('Minutes, comma separated. Used in the .ics export.', '分钟数，用逗号隔开，用于导出的 .ics。'),
+	look: () => tr('Look', '外观'),
+	serifNumbers: () => tr('Numbers in serif', '数字用衬线'),
+	serifNumbersDesc: () => tr('The big countdown number in Didot italic; Georgia where Didot is not installed.', '倒计时的大数字用 Didot 斜体；没装 Didot 的系统用 Georgia。'),
 	exports: () => tr('Exports', '导出'),
 	icsPath: () => tr('Calendar file', '日历文件'),
 	icsPathDesc: () => tr('Where the .ics export is saved.', '.ics 保存的位置。'),
@@ -734,6 +750,7 @@ function applySetting(s: PassSettings, key: SettingKey, value: unknown) {
 		case 'reminderLeadHours': { const n = Number(value); if (n > 0) s.reminderLeadHours = n; break; }
 		case 'deadline': { const v = asText(value).trim(); if (!v || parseDate(v)) s.deadline = v; break; }
 		case 'inAppReminders': s.inAppReminders = value === true; break;
+		case 'serifNumbers': s.serifNumbers = value === true; break;
 		case 'deadlineMode': s.deadlineMode = value === 'finish' ? 'finish' : 'activate'; break;
 		case 'reminderOffsets': s.reminderOffsets = asText(value); break;
 		case 'passName': case 'icsPath': case 'reportPath': s[key] = asText(value).trim() || DEFAULT_SETTINGS[key]; break;

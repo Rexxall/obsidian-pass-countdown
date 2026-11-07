@@ -50,7 +50,7 @@ function headline(when: When, now: Date): { value: string; unit: string; tone: s
 }
 
 /** The countdown view for Bases: one card per note, counting down to the date in a chosen property. */
-export function countdownViewRegistration(plugin: Plugin): BasesViewRegistration {
+export function countdownViewRegistration(plugin: Plugin, serifNumbers: () => boolean): BasesViewRegistration {
 	class CountdownView extends BasesView {
 		type = COUNTDOWN_VIEW_ID;
 		private root: HTMLElement;
@@ -72,6 +72,7 @@ export function countdownViewRegistration(plugin: Plugin): BasesViewRegistration
 			const startProp = this.config.getAsPropertyId('start');
 			const showPast = this.config.get('showPast') !== false;
 			this.root.empty();
+			this.root.toggleClass('pc-serif', serifNumbers());
 
 			const cards: { item: Card; when: When }[] = [];
 			let undated = 0;

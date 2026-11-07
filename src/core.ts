@@ -13,6 +13,8 @@ export interface PassSettings {
 	reportPath: string;
 	inAppReminders: boolean;
 	reminderLeadHours: number;
+	/** The big countdown numbers in Didot italic, Georgia italic where Didot is missing. */
+	serifNumbers: boolean;
 }
 
 export type DeadlineMode = 'activate' | 'finish';
@@ -55,7 +57,8 @@ export const DEFAULT_SETTINGS: PassSettings = {
 	icsPath: 'Pass Countdown/reminders.ics',
 	reportPath: 'Pass Countdown/report.md',
 	inAppReminders: true,
-	reminderLeadHours: 12
+	reminderLeadHours: 12,
+	serifNumbers: true
 };
 
 export type Tone = 'normal' | 'good' | 'warn' | 'danger';

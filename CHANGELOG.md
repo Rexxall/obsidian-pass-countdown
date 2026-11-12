@@ -3,6 +3,8 @@
 ## Unreleased
 
 - **Numbers in serif** (Settings → Look, on by default): the big countdown number on the panel, in note cards and in the Countdown view for Bases is set in Didot italic, Georgia italic where Didot is not installed. Everything else keeps its look; turn it off for the previous numbers.
+- **Look** (Settings → Look): *Standard* or *Journal*. Journal sets the panel on paper with a serif title, small-caps section labels with two short red strokes and a figure number; buttons and bars keep your theme's accent colour.
+- Settings groups: the rows' rounded ends are marked at most once per frame, and the watcher stops when the settings tab closes.
 
 ## 1.5.0
 

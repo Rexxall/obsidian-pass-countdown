@@ -23,6 +23,7 @@ import {
 } from './core';
 import { isZh, tr } from './i18n';
 import { registerBasesViewWhenReady } from './basesSupport';
+import { watchSettingGroups } from './settingGroups';
 import { COUNTDOWN_VIEW_ID, countdownViewRegistration } from './basesView';
 
 const VIEW_TYPE = 'pass-countdown-view';
@@ -103,7 +104,7 @@ export default class PassCountdownPlugin extends Plugin {
 			ctx.addChild(child);
 		});
 
-		registerBasesViewWhenReady(this, COUNTDOWN_VIEW_ID, () => countdownViewRegistration(this, () => this.data.settings.serifNumbers));
+		registerBasesViewWhenReady(this, COUNTDOWN_VIEW_ID, () => countdownViewRegistration(this, () => this.data.settings));
 
 		this.statusBar = this.addStatusBarItem();
 		this.statusBar.addClass('pass-countdown-status');
@@ -267,7 +268,7 @@ class PassCountdownView extends ItemView {
 		root.empty();
 		root.addClass('pass-countdown', 'ap', 'ap-view');
 		const { settings } = this.plugin.data;
-		root.toggleClass('pc-serif', settings.serifNumbers);
+		applyLook(root, settings);
 		const stats = this.plugin.stats();
 		const now = Date.now();
 		const records = sortRecords(this.plugin.data.records, 'asc');
@@ -276,6 +277,7 @@ class PassCountdownView extends ItemView {
 		// Glass bar: the panel scrolls under it.
 		const head = root.createDiv({ cls: 'ap-head ap-bar-glass' });
 		const headMain = head.createDiv({ cls: 'ap-head-main' });
+		headMain.createDiv({ cls: 'ap-fig', text: `FIG. PC · ${String(records.length).padStart(2, '0')}` });
 		headMain.createDiv({ cls: 'ap-eyebrow', text: tr('Pass countdown', '通行证倒计时') });
 		headMain.createDiv({ cls: 'ap-title', text: settings.passName });
 		const actions = head.createDiv({ cls: 'ap-head-actions' });
@@ -524,7 +526,7 @@ class PassEmbed extends MarkdownRenderChild {
 		el.empty();
 		const { settings } = this.plugin.data;
 		el.addClass('pass-countdown', 'pc-embed', 'ap');
-		el.toggleClass('pc-serif', settings.serifNumbers);
+		applyLook(el, settings);
 		const stats = this.plugin.stats();
 		const card = el.createDiv({ cls: 'ap-card pc-left' });
 		const top = card.createDiv({ cls: 'pc-embed-top' });
@@ -589,23 +591,36 @@ class ImportModal extends Modal {
 
 type SettingKey = keyof PassSettings;
 
-/** Marks each group's last row so the kit rounds its lower corners where Obsidian lays rows out flat under their headings. */
-function markGroupEnds(el: HTMLElement): void {
-	el.querySelectorAll('.setting-item:not(.setting-item-heading)').forEach(row => {
-		const next = row.nextElementSibling;
-		row.toggleClass('ap-group-end', !!next && (next.matches('.setting-item-heading') || !next.matches('.setting-item')));
-	});
+/** Signature layer: serif numbers and the optional journal look, as classes on a panel's root. */
+function applyLook(el: HTMLElement, settings: PassSettings): void {
+	el.toggleClass('ap-signed', settings.serifNumbers);
+	el.toggleClass('ap-look-journal', settings.look === 'journal');
 }
 
 class PassCountdownSettingTab extends PluginSettingTab {
 	constructor(app: App, private plugin: PassCountdownPlugin) {
 		super(app, plugin);
 		this.containerEl.addClass('ap', 'ap-settings');
-		new MutationObserver(() => markGroupEnds(this.containerEl)).observe(this.containerEl, { childList: true, subtree: true });
+		plugin.register(() => this.hide());
+	}
+
+	private stopGroups: (() => void) | null = null;
+
+	/** Marks group edges while the tab is open; started on every display, stopped on hide and unload. */
+	private watchGroups(): void {
+		if (this.stopGroups) return;
+		this.stopGroups = watchSettingGroups(this.containerEl);
+	}
+
+	hide(): void {
+		this.stopGroups?.();
+		this.stopGroups = null;
+		super.hide();
 	}
 
 	/** Obsidian 1.13+: rendered by Obsidian and indexed by settings search. */
 	getSettingDefinitions(): SettingDefinitionItem<SettingKey>[] {
+		this.watchGroups();
 		return [
 			{ name: L.passName(), control: { type: 'text', key: 'passName', placeholder: DEFAULT_SETTINGS.passName } },
 			{ name: L.totalUses(), control: { type: 'number', key: 'totalUses', min: 1, step: 1, validate: v => (Number.isInteger(v) && v > 0 ? undefined : L.wholeNumber()) } },
@@ -625,7 +640,8 @@ class PassCountdownSettingTab extends PluginSettingTab {
 				type: 'group',
 				heading: L.look(),
 				items: [
-					{ name: L.serifNumbers(), desc: L.serifNumbersDesc(), aliases: ['font', 'Didot', '字体', '衬线'], control: { type: 'toggle', key: 'serifNumbers' } }
+					{ name: L.serifNumbers(), desc: L.serifNumbersDesc(), aliases: ['font', 'Didot', '字体', '衬线'], control: { type: 'toggle', key: 'serifNumbers' } },
+					{ name: L.lookStyle(), aliases: ['appearance', 'journal', '手账', '外观'], control: { type: 'dropdown', key: 'look', options: L.looks() } }
 				]
 			},
 			{
@@ -681,10 +697,13 @@ class PassCountdownSettingTab extends PluginSettingTab {
 		new Setting(containerEl).setName(L.look()).setHeading();
 		new Setting(containerEl).setName(L.serifNumbers()).setDesc(L.serifNumbersDesc())
 			.addToggle(t => t.setValue(s.serifNumbers).onChange(v => set('serifNumbers', v)));
+		new Setting(containerEl).setName(L.lookStyle())
+			.addDropdown(d => d.addOptions(L.looks()).setValue(s.look).onChange(v => set('look', v)));
 
 		new Setting(containerEl).setName(L.exports()).setHeading();
 		new Setting(containerEl).setName(L.icsPath()).setDesc(L.icsPathDesc()).addText(t => t.setValue(s.icsPath).onChange(v => set('icsPath', v)));
 		new Setting(containerEl).setName(L.reportPath()).addText(t => t.setValue(s.reportPath).onChange(v => set('reportPath', v)));
+		this.watchGroups();
 	}
 }
 
@@ -711,6 +730,8 @@ const L = {
 	offsetsDesc: () => tr('Minutes, comma separated. Used in the .ics export.', '分钟数，用逗号隔开，用于导出的 .ics。'),
 	look: () => tr('Look', '外观'),
 	serifNumbers: () => tr('Numbers in serif', '数字用衬线'),
+	lookStyle: () => tr('Look', '外观'),
+	looks: () => ({ standard: tr('Standard', '标准'), journal: tr('Journal', '手账') }),
 	serifNumbersDesc: () => tr('The big countdown number in Didot italic; Georgia where Didot is not installed.', '倒计时的大数字用 Didot 斜体；没装 Didot 的系统用 Georgia。'),
 	exports: () => tr('Exports', '导出'),
 	icsPath: () => tr('Calendar file', '日历文件'),
@@ -729,7 +750,7 @@ function statePill(stats: PassStats): { cls: string; text: string } {
 /** The big count left, a meter for it and one line of context; shared by the panel and the note card. */
 function leftCard(card: HTMLElement, stats: PassStats) {
 	const big = card.createDiv({ cls: 'pc-count' });
-	big.createSpan({ cls: 'ap-big pc-big-value', text: String(stats.remaining) });
+	big.createSpan({ cls: 'ap-big pc-big-value ap-sig-num', text: String(stats.remaining) });
 	big.createSpan({ cls: 'pc-of', text: tr(`of ${stats.total} left`, `次剩余，共 ${stats.total} 次`) });
 	const meter = card.createDiv({ cls: 'ap-meter' });
 	meter.createDiv({ cls: 'ap-meter-fill' }).setCssProps({ '--ap-value': `${stats.total ? Math.min(Math.max(stats.remaining / stats.total, 0), 1) * 100 : 0}%` });
@@ -751,6 +772,7 @@ function applySetting(s: PassSettings, key: SettingKey, value: unknown) {
 		case 'deadline': { const v = asText(value).trim(); if (!v || parseDate(v)) s.deadline = v; break; }
 		case 'inAppReminders': s.inAppReminders = value === true; break;
 		case 'serifNumbers': s.serifNumbers = value === true; break;
+		case 'look': s.look = value === 'journal' ? 'journal' : 'standard'; break;
 		case 'deadlineMode': s.deadlineMode = value === 'finish' ? 'finish' : 'activate'; break;
 		case 'reminderOffsets': s.reminderOffsets = asText(value); break;
 		case 'passName': case 'icsPath': case 'reportPath': s[key] = asText(value).trim() || DEFAULT_SETTINGS[key]; break;

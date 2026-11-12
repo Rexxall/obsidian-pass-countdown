@@ -15,7 +15,11 @@ export interface PassSettings {
 	reminderLeadHours: number;
 	/** The big countdown numbers in Didot italic, Georgia italic where Didot is missing. */
 	serifNumbers: boolean;
+	/** Look of the panels: the standard one, or the journal look (paper, serif title, figure number). */
+	look: Look;
 }
+
+export type Look = 'standard' | 'journal';
 
 export type DeadlineMode = 'activate' | 'finish';
 
@@ -58,7 +62,8 @@ export const DEFAULT_SETTINGS: PassSettings = {
 	reportPath: 'Pass Countdown/report.md',
 	inAppReminders: true,
 	reminderLeadHours: 12,
-	serifNumbers: true
+	serifNumbers: true,
+	look: 'standard'
 };
 
 export type Tone = 'normal' | 'good' | 'warn' | 'danger';
@@ -304,6 +309,7 @@ export function normalizeData(raw: unknown): PassData {
 	// Older single-purpose tracker stored the deadline under another name.
 	if (!legacySettings.deadline && legacySettings.codeInputDeadline) settings.deadline = legacySettings.codeInputDeadline;
 	if (settings.deadlineMode !== 'finish') settings.deadlineMode = 'activate';
+	if (settings.look !== 'journal') settings.look = 'standard';
 	settings.totalUses = Math.max(1, Math.floor(Number(settings.totalUses) || DEFAULT_SETTINGS.totalUses));
 	settings.passDays = Math.max(1, Number(settings.passDays) || DEFAULT_SETTINGS.passDays);
 	settings.inAppReminders = settings.inAppReminders !== false;

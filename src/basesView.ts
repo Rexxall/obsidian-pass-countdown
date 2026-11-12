@@ -50,7 +50,7 @@ function headline(when: When, now: Date): { value: string; unit: string; tone: s
 }
 
 /** The countdown view for Bases: one card per note, counting down to the date in a chosen property. */
-export function countdownViewRegistration(plugin: Plugin, serifNumbers: () => boolean): BasesViewRegistration {
+export function countdownViewRegistration(plugin: Plugin, signature: () => { serifNumbers: boolean; look: string }): BasesViewRegistration {
 	class CountdownView extends BasesView {
 		type = COUNTDOWN_VIEW_ID;
 		private root: HTMLElement;
@@ -72,7 +72,9 @@ export function countdownViewRegistration(plugin: Plugin, serifNumbers: () => bo
 			const startProp = this.config.getAsPropertyId('start');
 			const showPast = this.config.get('showPast') !== false;
 			this.root.empty();
-			this.root.toggleClass('pc-serif', serifNumbers());
+			const sig = signature();
+			this.root.toggleClass('ap-signed', sig.serifNumbers);
+			this.root.toggleClass('ap-look-journal', sig.look === 'journal');
 
 			const cards: { item: Card; when: When }[] = [];
 			let undated = 0;
@@ -117,7 +119,7 @@ export function countdownViewRegistration(plugin: Plugin, serifNumbers: () => bo
 				const el = grid.createEl('a', { cls: `pc-bases-card ${head.tone}`, href: '#' });
 				el.createDiv({ cls: 'pc-bases-title', text: card.entry.file.basename });
 				const big = el.createDiv({ cls: 'pc-bases-left' });
-				big.createSpan({ cls: head.unit ? 'pc-bases-value' : 'pc-bases-value is-word', text: head.value });
+				big.createSpan({ cls: head.unit ? 'pc-bases-value ap-sig-num' : 'pc-bases-value is-word', text: head.value });
 				if (head.unit) big.createSpan({ cls: 'ap-unit', text: head.unit });
 				el.createDiv({ cls: 'pc-bases-date', text: formatWhen(card.end) });
 				const done = card.start ? elapsed(card.start, card.end, now) : null;

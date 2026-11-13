@@ -1,5 +1,7 @@
 <p align="right"><a href="README.md">English</a></p>
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/icon-dark.svg"><img src="assets/readme/icon-light.svg" width="96" height="96" alt="Pass Countdown icon"></picture></p>
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/hero-zh-dark.svg">
   <img src="assets/readme/hero-zh-light.svg" width="100%" alt="Pass Countdown（多次券倒数）：多次券一天也不浪费，下一张什么时候开一眼知道。一张 52 次、每次 7 天的通行证：还剩 44 次，当前这张剩 6 天 23 小时，并显示下一张最晚什么时候开。">

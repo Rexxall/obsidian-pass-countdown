@@ -1,5 +1,7 @@
 <p align="right"><a href="README.zh.md">中文</a> · <a href="#日本語">日本語</a></p>
 
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/icon-dark.svg"><img src="assets/readme/icon-light.svg" width="96" height="96" alt="Pass Countdown icon"></picture></p>
+
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/hero-dark.svg">
   <img src="assets/readme/hero-light.svg" width="100%" alt="Pass Countdown: use every day of a multi-use pass and know when to start the next one. A pass with 52 uses of 7 days shows 44 left, 6 days 23 hours left on the current one, and the latest start for the next.">

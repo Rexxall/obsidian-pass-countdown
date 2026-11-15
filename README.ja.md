@@ -9,10 +9,7 @@
 
 <p align="center"><a href="https://community.obsidian.md/plugins/pass-countdown"><b>Obsidian からインストール</b></a></p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/demo-dark.gif">
-  <img src="assets/readme/demo-light.gif" width="100%" alt="Pass Countdown で利用開始を記録する操作。ダイアログに終了時刻と残り回数が表示されます。保存すると残り回数が 1 回減り、7 日間のリングが動き始め、次回開始の最終時刻が 1 週間後に移ります。">
-</picture>
+<img src="assets/readme/demo.webp" width="100%" alt="Pass Countdown で利用開始を記録する操作。ダイアログに終了時刻と残り回数が表示されます。保存すると残り回数が 1 回減り、7 日間のリングが動き始め、次回開始の最終時刻が 1 週間後に移ります。">
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/cards-dark.svg">

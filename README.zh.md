@@ -9,10 +9,7 @@
 
 <p align="center"><a href="https://community.obsidian.md/plugins/pass-countdown"><b>在 Obsidian 里安装</b></a></p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/demo-dark.gif">
-  <img src="assets/readme/demo-light.gif" width="100%" alt="在 Pass Countdown 面板里记录一次激活：窗口先显示新的一张何时到期、之后还剩几次；保存后次数减一，新的 7 天圆环开始走，下一张的最晚开始时间往后推一周。">
-</picture>
+<img src="assets/readme/demo.webp" width="100%" alt="在 Pass Countdown 面板里记录一次激活：窗口先显示新的一张何时到期、之后还剩几次；保存后次数减一，新的 7 天圆环开始走，下一张的最晚开始时间往后推一周。">
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/cards-zh-dark.svg">

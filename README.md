@@ -9,10 +9,7 @@
 
 <p align="center"><a href="https://community.obsidian.md/plugins/pass-countdown"><b>Install from Obsidian</b></a></p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="assets/readme/demo-dark.gif">
-  <img src="assets/readme/demo-light.gif" width="100%" alt="Recording an activation in the Pass Countdown panel: the dialog shows when the new pass will end and how many will be left, then the count drops by one, a new 7-day ring starts and the latest start for the next pass moves a week later.">
-</picture>
+<img src="assets/readme/demo.webp" width="100%" alt="Recording an activation in the Pass Countdown panel: the dialog shows when the new pass will end and how many will be left, then the count drops by one, a new 7-day ring starts and the latest start for the next pass moves a week later.">
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/cards-dark.svg">

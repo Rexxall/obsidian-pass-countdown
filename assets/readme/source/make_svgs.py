@@ -2,19 +2,19 @@
 
     python3 make_svgs.py <pc|jws|aa> <out dir>
 
-Same frame, palette and type as the Git Note History sample (readme-kit); the right half of the hero
+Pass Countdown uses navy surfaces and teal accents. The right half of the hero
 draws the plugin's own interface with the demo vault's made-up data.
 """
 import sys
 from pathlib import Path
 
 THEMES = {
-    "light": dict(bg="#F7F6FB", fg="#1D1B26", muted="#6B6780", line="#E4E1EE",
-                  card="#FFFFFF", accent="#7A5AF0", accent_soft="#EEE9FF",
-                  red="#C93A40", red_soft="#FCEBEC", green="#22855A", green_soft="#E5F4EC",
+    "light": dict(bg="#F2F6F7", fg="#051B3E", muted="#4F6275", line="#DCE6E8",
+                  card="#FFFFFF", accent="#1F6F6A", action="#051B3E", action_text="#FFFFFF", soft="#DDF3EF",
+                  red="#C93A40", red_soft="#FCEBEC", green="#1D744E", green_soft="#E5F4EC",
                   orange="#B25E09", orange_soft="#FBEEDD"),
-    "dark": dict(bg="#15141B", fg="#EEECF5", muted="#9C98AF", line="#2C2A36",
-                 card="#1E1D26", accent="#A48BFF", accent_soft="#2C2643",
+    "dark": dict(bg="#061226", fg="#E6F1F2", muted="#8FA6B4", line="#15283F",
+                 card="#0C1C33", accent="#91C2BC", action="#91C2BC", action_text="#051B3E", soft="#12334A",
                  red="#F07C80", red_soft="#3A1E24", green="#5CC892", green_soft="#16301F",
                  orange="#F2A65A", orange_soft="#3A2A18"),
 }
@@ -33,13 +33,13 @@ def proof_pc(c, zh):
     ring_len = 2 * 3.1416 * 30
     return f"""
     <rect x="700" y="48" width="436" height="304" rx="20" fill="{c['card']}" stroke="{c['line']}"/>
-    <text x="728" y="92" font-size="18" fill="{c['muted']}">{t('Demo pass · 7 days', '示例通行证 · 7 天')}</text>
+    <text x="728" y="92" font-size="18" fill="{c['accent']}">{t('Demo pass · 7 days', '示例通行证 · 7 天')}</text>
     <text x="726" y="158" font-size="64" font-weight="700" letter-spacing="-1.5" fill="{c['fg']}">44</text>
     <text x="818" y="158" font-size="24" font-weight="600" fill="{c['muted']}">{t('of 52 left', '/ 52 次')}</text>
     <rect x="728" y="178" width="380" height="6" rx="3" fill="{c['line']}"/>
     <rect x="728" y="178" width="321" height="6" rx="3" fill="{c['accent']}"/>
-    <rect x="724" y="206" width="388" height="72" rx="14" fill="{c['bg']}"/>
-    <text x="744" y="236" font-size="17" fill="{c['muted']}">{t('Current pass', '当前这张')}</text>
+    <rect x="724" y="206" width="388" height="72" rx="14" fill="{c['soft']}"/>
+    <text x="744" y="236" font-size="17" fill="{c['accent']}">{t('Current pass', '当前这张')}</text>
     <text x="744" y="264" font-size="22" font-weight="600" fill="{c['fg']}">{t('6 d 23 h left', '剩 6 天 23 小时')}</text>
     <g transform="rotate(-90 1070 242)">
       <circle cx="1070" cy="242" r="20" fill="none" stroke="{c['line']}" stroke-width="5"/>
@@ -94,11 +94,11 @@ def proof_aa(c, zh):
         out.append(f'<rect x="896" y="{y}" width="216" height="80" rx="14" fill="{c["bg"]}"/>')
         out.append(f'<text x="912" y="{y + 28}" font-size="16" fill="{c["fg"]}">{esc(title)}</text>')
         pill = round(len(cat) * (13 if zh else 7.4) + 22)
-        out.append(f'<rect x="912" y="{y + 42}" width="{pill}" height="24" rx="12" fill="{c["accent_soft"]}"/>')
+        out.append(f'<rect x="912" y="{y + 42}" width="{pill}" height="24" rx="12" fill="{c["soft"]}"/>')
         out.append(f'<text x="{912 + pill / 2}" y="{y + 59}" font-size="13" text-anchor="middle" fill="{c["accent"]}">{esc(cat)}</text>')
         out.append(f'<text x="1098" y="{y + 60}" font-size="18" font-weight="600" text-anchor="end" fill="{c["fg"]}">{amount}</text>')
-    out.append(f'<rect x="896" y="276" width="216" height="44" rx="22" fill="{c["accent"]}"/>')
-    out.append(f'<text x="1004" y="304" font-size="18" font-weight="600" text-anchor="middle" fill="{c["card"]}">{t("Record 2", "确认 2 笔入账")}</text>')
+    out.append(f'<rect x="896" y="276" width="216" height="44" rx="22" fill="{c["action"]}"/>')
+    out.append(f'<text x="1004" y="304" font-size="18" font-weight="600" text-anchor="middle" fill="{c["action_text"]}">{t("Record 2", "确认 2 笔入账")}</text>')
     return "\n    ".join(out)
 
 
@@ -178,7 +178,7 @@ def hero(p, c, zh):
 def glyph(kind, x, y, c):
     a, m, r, g = c["accent"], c["muted"], c["red"], c["green"]
     if kind == "count":
-        return (f'<text x="{x+24}" y="{y+32}" font-size="20" font-weight="700" text-anchor="middle" fill="{a}" font-family="{SANS}">44</text>')
+        return (f'<text x="{x+24}" y="{y+32}" font-size="20" font-weight="700" text-anchor="middle" fill="{c['action_text']}" font-family="{SANS}">44</text>')
     if kind == "overlap":
         return (f'<rect x="{x+8}" y="{y+14}" width="22" height="8" rx="4" fill="{a}"/>'
                 f'<rect x="{x+18}" y="{y+26}" width="22" height="8" rx="4" fill="none" stroke="{r}" stroke-width="2" stroke-dasharray="3 2"/>')
@@ -211,7 +211,7 @@ def cards(p, c, zh):
     for i, (title, body, kind) in enumerate(text["cards"]):
         x = 24 + i * 392
         parts.append(f'<rect x="{x}" y="16" width="368" height="158" rx="22" fill="{c["bg"]}" stroke="{c["line"]}"/>')
-        parts.append(f'<rect x="{x+28}" y="44" width="48" height="48" rx="14" fill="{c["accent_soft"]}"/>')
+        parts.append(f'<rect x="{x+28}" y="44" width="48" height="48" rx="14" fill="{c["action"] if kind == "count" else c["soft"]}"/>')
         parts.append(glyph(kind, x + 28, 44, c))
         parts.append(f'<text x="{x+96}" y="78" font-size="{27 if not zh else 26}" font-weight="700" fill="{c["fg"]}">{esc(title)}</text>')
         parts.append(f'<text x="{x+28}" y="138" font-size="20" fill="{c["muted"]}">{esc(body)}</text>')

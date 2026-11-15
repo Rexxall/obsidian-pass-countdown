@@ -1,4 +1,4 @@
-<p align="right"><a href="README.zh.md">中文</a> · <a href="#日本語">日本語</a></p>
+<p align="right"><a href="README.zh.md">中文</a> · <a href="README.ja.md">日本語</a></p>
 
 <p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/icon-dark.svg"><img src="assets/readme/icon-light.svg" width="96" height="96" alt="Pass Countdown icon"></picture></p>
 
@@ -22,32 +22,42 @@
 ## Start in three steps
 
 1. Install **Pass Countdown** from *Settings → Community plugins → Browse* and enable it, then click the ticket icon in the left ribbon.
-2. In **Settings → Pass Countdown**, set the name, total uses, days per pass and the deadline.
-3. Right after you activate a pass, click **Record activation**.
+2. Open **Settings → Pass Countdown** and set the name, total uses, days per pass and the deadline.
+3. Right after you activate a pass, click **Record activation** and confirm the start time before saving.
 
 No pass yet? Click **Load a sample** in the empty panel.
 
 **Needs** Obsidian 1.10 or later, desktop or mobile. **Costs** nothing: no account, no key, no network.
 
+Something not working? [Copy a fix-it prompt](docs/troubleshooting.md) for your AI assistant.
+
 ## Everything else
 
 <details>
-<summary><b>Every feature</b></summary>
+<summary><b>First run, step by step</b></summary>
 
-**Count down a multi-use pass with a deadline: see uses left and time left on the running pass, and know the latest moment to start the next one.**
+1. Install and enable **Pass Countdown** and click the ticket icon in the left ribbon.
+2. With no records yet, click **Load a sample** to see the countdown, ring and pace with one made-up pass. It is never exported or reminded about, and **Remove sample** deletes it.
+3. Open **Settings → Pass Countdown** and set the name, total uses, days per pass and the deadline.
+4. Right after you activate a pass, click **Record activation** and confirm the start time before saving.
+
+</details>
+
+<details>
+<summary><b>Every feature</b></summary>
 
 <img src="docs/screenshots/record.jpg" width="900" alt="Record dialog: start time, when this pass will end, how many will be left, and an overlap warning">
 
 *Before you save, the dialog shows when the pass will end, how many will be left, and whether it would overlap the running one.*
 
-- **Keeps count for you.** Some prepaid bundles give a number of uses, each lasting a fixed time, with a last date to activate them, and do not tell you how many you have used. Record each activation and the panel does the rest.
-- **Warns before you waste one:** an overlap warning if a new pass would run alongside the current one, and the pace you need to use them all before the deadline.
+- **Activation records.** Some prepaid bundles give a number of uses, each lasting a fixed time, with a last date to activate them, and do not tell you how many you have used. Record each activation and the panel calculates the remaining uses.
+- **Overlap warning:** shows when a new pass would run alongside the current one, and the pace you need to use them all before the deadline.
 - **Reminds you** inside Obsidian and through calendar alerts (.ics) before a pass ends.
-- **Panel:** uses left, time left on the current pass, days to the deadline, and **pace**: the latest moment to start the next pass if you want to use every one back to back. Once that has passed, it tells you how many can still fit.
+- **Panel:** uses left, time left on the current pass, days to the deadline, and **pace:** the latest moment to start the next pass if you want to use every one back to back. Once that has passed, it tells you how many can still fit.
 - **Status bar:** `47/52 · 3 d 4 h left`.
 - **Calendar reminders.** Export an `.ics` file with one event per pass and alerts before it ends (12 h, 1 h and at the end by default) for Apple Calendar, Google Calendar or Outlook.
 - **Reminders inside Obsidian,** once when the running pass is about to end and once when the latest start that still fits every pass is near.
-- **Countdown view for Bases.** In any base, switch the view to *Countdown*: one card per note with the days left until a date property (a deadline, an exam, a visa renewal), soonest first, with the ones that have passed below. Pick a start property to see how far along each one is. With Bases turned off nothing changes.
+- **Countdown view for Bases.** In any base, switch the view to *Countdown*: one card per note with the days left until a date property (a deadline, an exam, a visa renewal), soonest first by default, with the ones that have passed below. Your own base sort is preserved. Pick a start property to see how far along each one is. With Bases turned off nothing changes.
 - **Markdown report** of every activation, **import** from notes with `activated_at` / `expires_at` frontmatter, and **edit** a record if you typed the wrong start time.
 
 <picture>
@@ -61,13 +71,6 @@ No pass yet? Click **Load a sample** in the empty panel.
 
 The plugin started with a Japanese mobile data bundle (52 uses of 7-day unlimited data, to be activated by 24 August 2027), and works for any pass of the same shape: gym visits that expire, ticket books, trial periods.
 
-**Start here, step by step**
-
-1. Install and enable **Pass Countdown**, then click the ticket icon in the left ribbon.
-2. With no records yet, click **Load a sample** to see the countdown, ring and pace with one made-up pass. It is never exported or reminded about, and **Remove sample** deletes it.
-3. In **Settings → Pass Countdown**, set the name, total uses, days per pass and the deadline.
-4. Right after you activate a pass, click **Record activation**.
-
 </details>
 
 <details>
@@ -75,14 +78,14 @@ The plugin started with a Japanese mobile data bundle (52 uses of 7-day unlimite
 
 | | |
 |---|---|
-| Obsidian | 1.10 or later, desktop and mobile (1.8 and 1.9 stay on 1.4.1) |
+| Obsidian | 1.10 or later, desktop and mobile (1.8.7–1.9.x use 1.4.1) |
 | The plugin | Free, MIT licence |
 | Network | None. The plugin makes no network requests and needs no account or key. |
 
 Nowhere. Records live in this plugin's `data.json` in your vault; the report and the `.ics` file are written where you choose. Store a short label if you need one, never the full prepaid code.
 
-- **Reads** its own `data.json`; once, on a first start with no data, the `data.json` of the older tracker it grew out of (`povo-7day-tracker`), if that exists; and, only when you run an import, the frontmatter of the notes in the folder you name.
-- **Writes** its own `data.json`, and, only when you export, the report note and the `.ics` file at the paths in settings (`Pass Countdown/report.md` and `Pass Countdown/reminders.ics` by default). Both paths are inside the vault, and an existing file there is replaced.
+- **Reads** its own `data.json`; once, on a first start with no data, the `data.json` of the older tracker it grew out of (`povo-7day-tracker`), if that exists; the frontmatter of notes in the folder you name when you run an import; and date and display properties of notes in the current base when you use its Countdown view.
+- **Writes** its own `data.json`, and, only when you export, the report note and the `.ics` file at the paths in settings (`Pass Countdown/report.md` and `Pass Countdown/reminders.ics` by default). Both paths are inside the vault, and an existing file there is replaced. The **Insert pass card into the current note** command inserts a code block at the cursor or replaces the selection.
 - **Never** makes network requests, uses the clipboard, runs other programs, or reads or writes outside the vault.
 
 </details>
@@ -90,9 +93,9 @@ Nowhere. Records live in this plugin's `data.json` in your vault; the report and
 <details>
 <summary><b>Install by hand, and an example setup</b></summary>
 
-**From Obsidian (once listed):** Settings → Community plugins → Browse, search for **Pass Countdown**.
+**From Obsidian:** Settings → Community plugins → Browse, install and enable **Pass Countdown** from the directory. [PKMer automatically syncs the official directory](https://pkmer.cn/Pkmer-Docs/00-%E5%85%B3%E4%BA%8E/pkmer%E7%A4%BE%E5%8C%BAfaq/).
 
-**Manually:** download `main.js`, `manifest.json` and `styles.css` from the latest release into `<vault>/.obsidian/plugins/pass-countdown/`, reload Obsidian and enable the plugin.
+**Manually:** download `main.js`, `manifest.json` and `styles.css` from the [latest release](https://github.com/Rexxall/obsidian-pass-countdown/releases/latest) into `<vault>/.obsidian/plugins/pass-countdown/`, reload Obsidian and enable the plugin.
 
 **Checking a download:** from 1.4.1 on, GitHub Actions builds the release files and signs where they came from. Check one with `gh attestation verify main.js --repo Rexxall/obsidian-pass-countdown`.
 
@@ -134,13 +137,6 @@ npm test   # end times, pace, overlap, .ics, report escaping, import, editing, r
 **1.4.0:** no findings left in the community directory's review, with the same look. 
 
 **1.3.0:** a sample pass for a new panel, the interface language read with Obsidian's `getLanguage()`, and a README in English and Chinese. Full history in [CHANGELOG.md](CHANGELOG.md).
-
-</details>
-
-<details>
-<summary><b id="日本語">日本語</b></summary>
-
-「N 回分・1 回 D 日間・有効化の期限あり」の回数券を数えるプラグインです。残り回数、今の回の残り時間、すべて使い切るための次回開始の最終時刻を表示し、まだ有効な回と重なると警告します。Obsidian 内の通知と、カレンダー用の .ics 書き出しに対応。通信は一切行わず、クリップボードも使いません。データは保管庫の中だけに保存されます。コード全体は保存しないでください。
 
 </details>
 

@@ -1,6 +1,6 @@
-<p align="right"><a href="README.md">English</a></p>
+<p align="right"><a href="README.md">English</a> · <a href="README.ja.md">日本語</a></p>
 
-<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/icon-dark.svg"><img src="assets/readme/icon-light.svg" width="96" height="96" alt="Pass Countdown icon"></picture></p>
+<p align="center"><picture><source media="(prefers-color-scheme: dark)" srcset="assets/readme/icon-dark.svg"><img src="assets/readme/icon-light.svg" width="96" height="96" alt="Pass Countdown 图标"></picture></p>
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/hero-zh-dark.svg">
@@ -21,34 +21,44 @@
 
 ## 三步上手
 
-1. 在 *设置 → 第三方插件 → 浏览* 里安装并启用 **Pass Countdown**，点左侧栏的票券图标。
+1. 在 *设置 → 第三方插件 → 浏览* 里安装并启用 **Pass Countdown** ，点左侧栏的票券图标。
 2. 在 **设置 → Pass Countdown** 里填名称、总次数、每张几天和截止时间。
-3. 每次激活后马上点 **记录激活**。
+3. 每次激活后点 **记录激活** ，核对开始时间后保存。
 
-还没有券？在空面板里点 **载入示例**。
+还没有券？在空面板里点 **载入示例** 。
 
 **需要** Obsidian 1.10 或更高，电脑和手机都能用。**花费** 为零：不要账号、不要密钥、不联网。
+
+遇到问题？[复制一段排查提示词](docs/troubleshooting.zh-CN.md) 给你的 AI 助手。
 
 ## 其余内容
 
 <details>
-<summary><b>全部功能</b></summary>
+<summary><b>第一次使用的完整步骤</b></summary>
 
-**给有期限的多次券倒数：还剩几次、这一张还剩多久、最晚什么时候必须开下一张。**
+1. 安装并启用 **Pass Countdown** ，点左侧栏的票券图标。
+2. 还没有记录时，点 **载入示例** ，用一张虚构的券看看倒计时、圆环和节奏。示例不会被导出，也不会提醒；点 **删除示例** 会删除示例记录。
+3. 在 **设置 → Pass Countdown** 里填名称、总次数、每张几天和截止时间。
+4. 每次激活后点 **记录激活** ，核对开始时间后保存。
+
+</details>
+
+<details>
+<summary><b>全部功能</b></summary>
 
 <img src="docs/screenshots/record.jpg" width="900" alt="记录窗口：开始时间、这张何时到期、之后还剩几次、重叠提醒">
 
 *保存前会显示这张什么时候到期、之后还剩几次，以及会不会和正在用的重叠。*
 
-- **替你记次数。** 有些预付套餐是“N 次、每次 D 天、某天前必须激活”，却查不到用了几次。每次激活记一笔，剩下的交给面板。
-- **防止浪费：** 新的一张会和正在用的重叠时提醒你，并算出想在期限前全部用完需要的节奏。
+- **记录次数。** 有些预付套餐是“N 次、每次 D 天、某天前必须激活”，却查不到用了几次。每次激活记一笔，面板计算剩余次数。
+- **重叠警告：** 新的一张会和正在用的重叠时提醒你，并算出想在期限前全部用完需要的节奏。
 - **到期前提醒，** 在 Obsidian 里提醒，也能导出日历提醒（.ics）。
-- **面板：** 剩余次数、当前这张还剩多久、离截止还有几天，以及 **节奏**：想连续用完，最晚什么时候开下一张；已经来不及时，显示还能用上几张。
+- **面板：** 剩余次数、当前这张还剩多久、离截止还有几天，以及 **节奏：** 想连续用完，最晚什么时候开下一张；已经来不及时，显示还能用上几张。
 - **状态栏：** `47/52 · 剩 3 天 4 小时`。
 - **日历提醒。** 导出 `.ics`，每张券一个事件，到期前提醒（默认 12 小时、1 小时和到期时），可导入苹果日历、Google 日历或 Outlook。
 - **Obsidian 内提醒，** 当前这张快到期时提醒一次，“最晚开下一张”的时间临近时再提醒一次。
-- **Bases 倒计时视图。** 在任意 base 里把视图换成“倒计时”：每篇笔记一张卡，显示离某个日期属性（截止日期、考试、签证续签）还有几天，最近的在前，已过的放在下面。再选一个开始日期属性，就能看到进度。没开 Bases 时一切照旧。
-- **Markdown 报告：** 可以从带 `activated_at` / `expires_at` 的笔记导入，记错时间可以编辑。
+- **Bases 倒计时视图。** 在任意 base 里把视图换成“倒计时”：每篇笔记一张卡，显示离某个日期属性（截止日期、考试、签证续签）还有几天，默认最近的在前，已过的放在下面；也会保留你在 base 里设定的排序。再选一个开始日期属性，就能看到进度。没开 Bases 时一切照旧。
+- **Markdown 报告：** 导出每次激活的记录；可以从带 `activated_at` / `expires_at` 的笔记导入，记错时间可以编辑。
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="assets/readme/bases-dark.png">
@@ -61,13 +71,6 @@
 
 做这个插件的起因是日本 povo2.0 的 7 天无限流量 52 次券（2027 年 8 月 24 日前激活）。同样形状的东西都能用：会过期的健身次卡、回数券、试用期。
 
-**从这里开始（详细）**
-
-1. 安装并启用 **Pass Countdown**，点左侧栏的票券图标。
-2. 还没有记录时，点 **载入示例**，用一张虚构的券看看倒计时、圆环和节奏。示例不会被导出，也不会提醒；点 **删除示例** 一键删掉。
-3. 在 **设置 → Pass Countdown** 里填名称、总次数、每张几天和截止时间。
-4. 每次激活后马上点 **记录激活**。
-
 </details>
 
 <details>
@@ -75,14 +78,14 @@
 
 | | |
 |---|---|
-| Obsidian | 1.10 或更高，电脑和手机都能用（1.8、1.9 停在 1.4.1） |
+| Obsidian | 1.10 或更高，电脑和手机都能用（1.8.7–1.9.x 使用 1.4.1） |
 | 插件本身 | 免费，MIT 许可 |
 | 联网 | 不联网。插件不发任何网络请求，不需要账号和密钥。 |
 
 哪儿也不去。记录在库里插件的 `data.json` 里，报告和 `.ics` 文件写在你指定的位置。需要的话只存一个简短标签，不要存完整的兑换码。
 
-- **读：** 自己的 `data.json`；首次启动且没有数据时，读一次它前身旧插件（`povo-7day-tracker`）的 `data.json`（有的话）；只在你运行导入时，读你指定文件夹里笔记的 frontmatter。
-- **写：** 自己的 `data.json`；只在你导出时，按设置里的路径写报告笔记和 `.ics` 文件（默认 `Pass Countdown/report.md` 和 `Pass Countdown/reminders.ics`）。两个路径都在库里，同名文件会被覆盖。
+- **读：** 自己的 `data.json`；首次启动且没有数据时，读一次它前身旧插件（`povo-7day-tracker`）的 `data.json`（有的话）；运行导入时，读你指定文件夹里笔记的 frontmatter；使用 Bases 倒计时视图时，读当前 base 中笔记的日期及显示属性。
+- **写：** 自己的 `data.json`；只在你导出时，按设置里的路径写报告笔记和 `.ics` 文件（默认 `Pass Countdown/report.md` 和 `Pass Countdown/reminders.ics`）。两个路径都在库里，同名文件会被覆盖。“在当前笔记插入通行证卡片”命令会在光标处插入代码块，或替换选中的内容。
 - **从不：** 联网、用剪贴板、运行其他程序、读写库外的文件。
 
 </details>
@@ -90,9 +93,9 @@
 <details>
 <summary><b>手动安装和设置示例</b></summary>
 
-**在 Obsidian 里（上架后）：** 设置 → 第三方插件 → 浏览，搜索 **Pass Countdown**。PKMer 会自动同步官方目录。
+**在 Obsidian 里：** 设置 → 第三方插件 → 浏览，搜索 **Pass Countdown** 。[PKMer 会自动同步官方目录](https://pkmer.cn/Pkmer-Docs/00-%E5%85%B3%E4%BA%8E/pkmer%E7%A4%BE%E5%8C%BAfaq/)。
 
-**手动：** 从最新版本下载 `main.js`、`manifest.json`、`styles.css`，放进 `<库>/.obsidian/plugins/pass-countdown/`，重新加载后启用。
+**手动：** 从 [最新版本](https://github.com/Rexxall/obsidian-pass-countdown/releases/latest) 下载 `main.js`、`manifest.json`、`styles.css`，放进 `<库>/.obsidian/plugins/pass-countdown/`，重新加载后启用。
 
 **核验下载：** 从 1.4.1 起，Release 附件由 GitHub Actions 构建并附构建来源认证，可以用 `gh attestation verify main.js --repo Rexxall/obsidian-pass-countdown` 核验。
 
@@ -121,7 +124,13 @@
 <details>
 <summary><b>开发和更新记录</b></summary>
 
-构建、检查命令和提 issue 的方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
+```bash
+npm install
+npm run build
+npm test   # 到期时间、节奏、重叠、.ics、报告转义、导入、编辑、提醒、迁移
+```
+
+`styles.css` 由脚本生成：修改 `styles/plugin.css` 后运行 `npm run styles`。CI、发布和提 issue 的方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
 **1.5.0：** Bases“倒计时”视图：每篇笔记一张卡，显示离日期属性还有几天。需要 Obsidian 1.10。
 

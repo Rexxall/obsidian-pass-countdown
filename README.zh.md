@@ -24,7 +24,7 @@
 
 还没有券？在空面板里点 **载入示例** 。
 
-**需要** Obsidian 1.10 或更高，电脑和手机都能用。**花费** 为零：不要账号、不要密钥、不联网。
+**需要** Obsidian <!-- DOCS-SYNC:START min -->1.10<!-- DOCS-SYNC:END --> 或更高，电脑和手机都能用。**花费** 为零：不要账号、不要密钥、不联网。
 
 遇到问题？[复制一段排查提示词](docs/troubleshooting.zh-CN.md) 给你的 AI 助手。
 
@@ -129,7 +129,7 @@ npm test   # 到期时间、节奏、重叠、.ics、报告转义、导入、编
 
 `styles.css` 由脚本生成：修改 `styles/plugin.css` 后运行 `npm run styles`。CI、发布和提 issue 的方式见 [CONTRIBUTING.md](CONTRIBUTING.md)。
 
-**1.5.0：** Bases“倒计时”视图：每篇笔记一张卡，显示离日期属性还有几天。需要 Obsidian 1.10。
+**1.5.0：** Bases“倒计时”视图：每篇笔记一张卡，显示离日期属性还有几天。需要 Obsidian <!-- DOCS-SYNC:START min -->1.10<!-- DOCS-SYNC:END -->。
 
 **1.4.0：** 社区目录的自动审查不再有提示，外观不变。
 

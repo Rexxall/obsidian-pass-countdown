@@ -24,7 +24,7 @@
 
 No pass yet? Click **Load a sample** in the empty panel.
 
-**Needs** Obsidian 1.10 or later, desktop or mobile. **Costs** nothing: no account, no key, no network.
+**Needs** Obsidian <!-- DOCS-SYNC:START min -->1.10<!-- DOCS-SYNC:END --> or later, desktop or mobile. **Costs** nothing: no account, no key, no network.
 
 Something not working? [Copy a fix-it prompt](docs/troubleshooting.md) for your AI assistant.
 
@@ -129,7 +129,7 @@ npm test   # end times, pace, overlap, .ics, report escaping, import, editing, r
 
 `styles.css` is generated: edit `styles/plugin.css` and run `npm run styles`. For CI, releases and reporting issues, see [CONTRIBUTING.md](CONTRIBUTING.md).
 
-**1.5.0:** a *Countdown* view for Bases: days left until a date property, one card per note. Needs Obsidian 1.10.
+**1.5.0:** a *Countdown* view for Bases: days left until a date property, one card per note. Needs Obsidian <!-- DOCS-SYNC:START min -->1.10<!-- DOCS-SYNC:END -->.
 
 **1.4.0:** no findings left in the community directory's review, with the same look. 
 

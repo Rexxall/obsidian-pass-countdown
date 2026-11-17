@@ -7,7 +7,7 @@
   <img src="assets/readme/hero-light.svg" width="100%" alt="Pass Countdown: use every day of a multi-use pass and know when to start the next one. A pass with 52 uses of 7 days shows 44 left, 6 days 23 hours left on the current one, and the latest start for the next.">
 </picture>
 
-<p align="center"><a href="https://community.obsidian.md/plugins/pass-countdown"><b>Install from Obsidian</b></a></p>
+<p align="center"><a href="https://community.obsidian.md/plugins/pass-countdown"><b>Install from Obsidian</b></a> · <a href="https://rexxall.github.io/#pass-countdown">See how it works</a></p>
 
 <img src="assets/readme/demo.webp" width="100%" alt="Recording an activation in the Pass Countdown panel: the dialog shows when the new pass will end and how many will be left, then the count drops by one, a new 7-day ring starts and the latest start for the next pass moves a week later.">
 

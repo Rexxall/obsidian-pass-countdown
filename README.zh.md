@@ -7,7 +7,7 @@
   <img src="assets/readme/hero-zh-light.svg" width="100%" alt="Pass Countdown（多次券倒数）：多次券一天也不浪费，下一张什么时候开一眼知道。一张 52 次、每次 7 天的通行证：还剩 44 次，当前这张剩 6 天 23 小时，并显示下一张最晚什么时候开。">
 </picture>
 
-<p align="center"><a href="https://community.obsidian.md/plugins/pass-countdown"><b>在 Obsidian 里安装</b></a></p>
+<p align="center"><a href="https://community.obsidian.md/plugins/pass-countdown"><b>在 Obsidian 里安装</b></a> · <a href="https://rexxall.github.io/#pass-countdown">看它怎么用</a></p>
 
 <img src="assets/readme/demo.webp" width="100%" alt="在 Pass Countdown 面板里记录一次激活：窗口先显示新的一张何时到期、之后还剩几次；保存后次数减一，新的 7 天圆环开始走，下一张的最晚开始时间往后推一周。">
 

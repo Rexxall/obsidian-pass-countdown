@@ -7,7 +7,7 @@
   <img src="assets/readme/hero-light.svg" width="100%" alt="Pass Countdown：回数券の残り回数と、次の券を使い始める最終時刻を確認できます。1 回 7 日間、全 52 回の券で残り 44 回。現在の券は残り 6 日 23 時間です。">
 </picture>
 
-<p align="center"><a href="https://community.obsidian.md/plugins/pass-countdown"><b>Obsidian からインストール</b></a></p>
+<p align="center"><a href="https://community.obsidian.md/plugins/pass-countdown"><b>Obsidian からインストール</b></a> · <a href="https://rexxall.github.io/#pass-countdown">使い方を見る</a></p>
 
 <img src="assets/readme/demo.webp" width="100%" alt="Pass Countdown で利用開始を記録する操作。ダイアログに終了時刻と残り回数が表示されます。保存すると残り回数が 1 回減り、7 日間のリングが動き始め、次回開始の最終時刻が 1 週間後に移ります。">
 
